@@ -1,65 +1,75 @@
 using System;
-using System.CommandLine;
-using System.CommandLine.Invocation;
 
 namespace ChatApp;
 
-public class CommandLineOptions
+using System;
+
+public class CommandLineArguments
 {
-    public string Transport { get; set; } = "tcp";
-    public string Server { get; set; } = "localhost";
-    public ushort Port { get; set; } = 4567;
-    public ushort Timeout { get; set; } = 250;
-    public byte Retransmissions { get; set; } = 3;
-    public bool Help { get; set; }
+    public string? TransportProtocol { get; private set; }
+    public string? ServerAddress { get; private set; }
+    public ushort ServerPort { get; private set; } = 4567;
+    public ushort UdpTimeout { get; private set; } = 250;
+    public byte MaxRetransmissions { get; private set; } = 3;
 
-    public static CommandLineOptions Parse(string[] args)
+    public CommandLineArguments(string[] args)
     {
-        var options = new CommandLineOptions();
-        var rootCommand = new RootCommand
-        {
-            new Option<string>(
-                "--transport",
-                description: "Transport protocol used for connection (tcp or udp)",
-                getDefaultValue: () => "tcp"
-            ),
-            new Option<string>(
-                "--server",
-                description: "Server IP or hostname",
-                getDefaultValue: () => "localhost"
-            ),
-            new Option<ushort>(
-                "--port",
-                description: "Server port",
-                getDefaultValue: () => 4567
-            ),
-            new Option<ushort>(
-                "--timeout",
-                description: "UDP confirmation timeout",
-                getDefaultValue: () => 250
-            ),
-            new Option<byte>(
-                "--retransmissions",
-                description: "Maximum number of UDP retransmissions",
-                getDefaultValue: () => 3
-            ),
-            new Option<bool>(
-                "--help",
-                description: "Prints program help output and exits"
-            )
-        };
+        ParseArguments(args);
+    }
 
-        rootCommand.Handler = CommandHandler.Create<string, string, ushort, ushort, byte, bool>((transport, server, port, timeout, retransmissions, help) =>
+    private void ParseArguments(string[] args)
+    {
+        for (int i = 0; i < args.Length; i += 2)
         {
-            options.Transport = transport;
-            options.Server = server;
-            options.Port = port;
-            options.Timeout = timeout;
-            options.Retransmissions = retransmissions;
-            options.Help = help;
-        });
+            string arg = args[i];
+            string value = args[i + 1];
 
-        rootCommand.Invoke(args);
-        return options;
+            switch (arg)
+            {
+                case "-t":
+                    TransportProtocol = value;
+                    break;
+                case "-s":
+                    ServerAddress = value;
+                    break;
+                case "-p":
+                    ServerPort = ushort.Parse(value);
+                    break;
+                case "-d":
+                    UdpTimeout = ushort.Parse(value);
+                    break;
+                case "-r":
+                    MaxRetransmissions = byte.Parse(value);
+                    break;
+                case "-h":
+                    PrintHelp();
+                    Environment.Exit(0); 
+                    break;
+                default:
+                    Console.WriteLine($"Unknown argument: {arg}");
+                    PrintHelp();
+                    Environment.Exit(1);
+                    break;
+            }
+        }
+
+        if (TransportProtocol == null || ServerAddress == null)
+        {
+            Console.WriteLine("Mandatory arguments missing.");
+            PrintHelp();
+            Environment.Exit(1);
+        }
+    }
+
+    private static void PrintHelp()
+    {
+        Console.WriteLine("Usage: program.exe -t [tcp/udp] -s [server_address] [-p [server_port]] [-d [udp_timeout]] [-r [max_retransmissions]] [-h]");
+        Console.WriteLine("Options:");
+        Console.WriteLine("-t\tTransport protocol used for connection [TCP/UDP]");
+        Console.WriteLine("-s\tServer IP or hostname");
+        Console.WriteLine("-p\tServer port [default: 4567]");
+        Console.WriteLine("-d\tUDP confirmation timeout [default: 250]");
+        Console.WriteLine("-r\tMaximum number of UDP retransmissions [default: 3]");
+        Console.WriteLine("-h\tPrints program help output and exits");
     }
 }

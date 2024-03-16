@@ -23,7 +23,7 @@ public class CommandLineArguments
             if (arg == "-h")
             {
                 PrintHelp();
-                Environment.Exit(0); 
+                ErrorHandler.ExitSuccess();
             }
             string value = args[i + 1];
 
@@ -45,18 +45,14 @@ public class CommandLineArguments
                     MaxRetransmissions = byte.Parse(value);
                     break;
                 default:
-                    Console.WriteLine($"Unknown argument: {arg}");
-                    PrintHelp();
-                    Environment.Exit(1);
+                    ErrorHandler.ExitWith($"Unknown argument: {arg}. Try /help", ExitCode.UnknownParam);
                     break;
             }
         }
 
         if (TransportProtocol == null || ServerAddress == null)
         {
-            Console.WriteLine("Mandatory arguments missing.");
-            PrintHelp();
-            Environment.Exit(1);
+            ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.UnknownParam);
         }
     }
 

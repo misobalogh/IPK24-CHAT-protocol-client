@@ -14,6 +14,10 @@ static class Program
         Console.WriteLine($"UDP Timeout: {cmdArgs.UdpTimeout}");
         Console.WriteLine($"Max Retransmissions: {cmdArgs.MaxRetransmissions}");
 
+        var usrInput = new UserInputHandler();
+        usrInput.ProcessInput();
+
+
     }
 }
 

@@ -1,24 +1,24 @@
-OUTPUT = ipk24chat-client
-
-BUILD_NAME = ipk24chat-client
+APP_NAME = ipk24chat-client
 SRC_DIR = ./src/ChatApp
-OUT_DIR = .
+BIN = bin
+OBJ = obj
 
-all: build 
+.PHONY: clean build
 
-build:
-	dotnet build -c Release /p:AssemblyName=$(BUILD_NAME)
-	mv $(SRC_DIR)/bin/Release/net8.0
+all: build
 
-run:
-	mono $(OUT_DIR)/$(OUTPUT)
+build: 
+	dotnet publish -c Release /p:DebugType=None -o .
+	
+run: build
+	./ipk24chat-client -t tcp -s 4040 
+
+help: build
+	./ipk24chat-client -h
 
 clean:
-	rm -rf $(OUT_DIR)
+	rm -rf $(APP_NAME)
+	rm -rf $(SRC_DIR)/$(BIN)
+	rm -rf $(SRC_DIR)/$(OBJ)
 
-help:
-	@echo "Available targets:"
-	@echo "  - build:   Build the C# application"
-	@echo "  - run:     Run the C# application"
-	@echo "  - clean:   Clean the build"
-	@echo "  - help:    Display this help message"
+

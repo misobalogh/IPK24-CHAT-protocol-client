@@ -1,5 +1,3 @@
-using System;
-
 namespace ChatApp;
 
 using System;
@@ -22,6 +20,11 @@ public class CommandLineArguments
         for (int i = 0; i < args.Length; i += 2)
         {
             string arg = args[i];
+            if (arg == "-h")
+            {
+                PrintHelp();
+                Environment.Exit(0); 
+            }
             string value = args[i + 1];
 
             switch (arg)
@@ -41,10 +44,6 @@ public class CommandLineArguments
                 case "-r":
                     MaxRetransmissions = byte.Parse(value);
                     break;
-                case "-h":
-                    PrintHelp();
-                    Environment.Exit(0); 
-                    break;
                 default:
                     Console.WriteLine($"Unknown argument: {arg}");
                     PrintHelp();
@@ -63,7 +62,7 @@ public class CommandLineArguments
 
     private static void PrintHelp()
     {
-        Console.WriteLine("Usage: program.exe -t [tcp/udp] -s [server_address] [-p [server_port]] [-d [udp_timeout]] [-r [max_retransmissions]] [-h]");
+        Console.WriteLine("Usage: ipk24chat-client -t [tcp/udp] -s [server_address] [-p [server_port]] [-d [udp_timeout]] [-r [max_retransmissions]] [-h]");
         Console.WriteLine("Options:");
         Console.WriteLine("-t\tTransport protocol used for connection [TCP/UDP]");
         Console.WriteLine("-s\tServer IP or hostname");

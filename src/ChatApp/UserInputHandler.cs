@@ -4,23 +4,40 @@ namespace  ChatApp;
 
 public class UserInputHandler
 {
+    private bool _exit;
+    private TcpClientWrapper tcpClient = new TcpClientWrapper("127.0.0.1", 4567);
     public void ProcessInput()
     {
-        string? input = Console.ReadLine();
+        _exit = false;
+        Console.CancelKeyPress += OnCancelKeyPress;
+        
+        while (!_exit)
+        {
+            string? input = Console.ReadLine();
 
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                continue;
+            }
 
-        if (input.StartsWith("/"))
-        {
-            ProcessLocalCommand(input);
+            if (input.StartsWith("/"))
+            {
+                ProcessLocalCommand(input);
+            }
+            else
+            {
+                SendMessage(input);
+            }
         }
-        else
-        {
-            SendMessage(input);
-        }
+        
+        ErrorHandler.ExitSuccess();
+    }
+
+    private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
+    {
+        eventArgs.Cancel = true;
+        Console.WriteLine("Exit app");
+        ErrorHandler.ExitSuccess();
     }
 
     private void ProcessLocalCommand(string command)
@@ -50,8 +67,8 @@ public class UserInputHandler
                 HandleCommandHelp(parameters);
                 break;
             default:
-                ErrorHandler.ExitWith($"Unknown command: {localCommand}. Try /help for list of supported commands.", ExitCode.UnknownCommand);
-                break;
+                ErrorHandler.InformUser($"Unknown command: {localCommand}. Try /help for list of supported commands.");
+                return;
         }
 
     }
@@ -62,7 +79,8 @@ public class UserInputHandler
 
         if (parametersSplit.Length != 3)
         { 
-            ErrorHandler.ExitWith("Wrong parameters for command /auth. Try /help", ExitCode.CommandWrongParams);
+            ErrorHandler.InformUser("Wrong parameters for command /auth. Try /help");
+            return;
         }
 
         string username = parametersSplit[0];
@@ -81,7 +99,8 @@ public class UserInputHandler
         
         if (parametersSplit.Length != 1)
         { 
-            ErrorHandler.ExitWith("Wrong parameters for command /join. Try /help", ExitCode.CommandWrongParams);
+            ErrorHandler.InformUser("Wrong parameters for command /join. Try /help");
+            return;
         }
 
         string channelId = parametersSplit[0];
@@ -97,7 +116,8 @@ public class UserInputHandler
         
         if (parametersSplit.Length != 1)
         { 
-            ErrorHandler.ExitWith("Wrong parameters for command /rename. Try /help", ExitCode.CommandWrongParams);
+            ErrorHandler.InformUser("Wrong parameters for command /rename. Try /help");
+            return;
         }
 
         string displayName = parametersSplit[0];
@@ -110,14 +130,20 @@ public class UserInputHandler
     {
         if (!string.IsNullOrEmpty(parameters))
         {
-            ErrorHandler.ExitWith($"Wrong parameters - command /help does not support any parameters", ExitCode.CommandWrongParams);
+            ErrorHandler.InformUser($"Wrong parameters - command /help does not support any parameters");
+            return;
         }
-        Console.WriteLine("command /help");
+        Console.WriteLine("Available commands:");
+        Console.WriteLine("\t/auth {Username} {Secret} {DisplayName} Sends AUTH message with the data provided from the command to the server");
+        Console.WriteLine("\t/join {ChannelID}\t\t\tSends JOIN message with channel name from the command to the server");
+        Console.WriteLine("\t/rename {DisplayName}\t\t\tchanges the display name of the user ");
+        Console.WriteLine("\t/help\t\t\t\t\tprints this help message");
     }
 
        
-    private void SendMessage(string input)
+    private void SendMessage(string message)
     {
-        Console.WriteLine($"Send message: {input}");
+        tcpClient.SendMessage(message);   
+        Console.WriteLine($"Send message: {message}");
     }
 }

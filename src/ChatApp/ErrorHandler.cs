@@ -14,4 +14,9 @@ public static class ErrorHandler
     {
         Environment.Exit((int)ExitCode.Success);
     }
+
+    public static void InformUser(string message)
+    {
+        Console.Error.WriteLine($"WARNING: {message}");
+    }
 }

@@ -6,6 +6,7 @@ static class Program
 {
     private static void Main(string[] args)
     {
+
         var cmdArgs = new CommandLineArguments(args);
 
         Console.WriteLine($"Transport Protocol: {cmdArgs.TransportProtocol}");

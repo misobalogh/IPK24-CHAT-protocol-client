@@ -1,8 +1,9 @@
 ﻿using System;
+using ChatApp.Enums;
 
 namespace ChatApp; 
 
-static class Program
+internal static class Program
 {
     private static void Main(string[] args)
     {
@@ -15,10 +16,21 @@ static class Program
         Console.WriteLine($"UDP Timeout: {cmdArgs.UdpTimeout}");
         Console.WriteLine($"Max Retransmissions: {cmdArgs.MaxRetransmissions}");
 
-        var usrInput = new UserInputHandler();
-        usrInput.ProcessInput();
 
+        var clientState = new ClientState();
+        Console.WriteLine($"State: {clientState.GetCurrentState()}");
 
+        clientState.NextState(MessageType.None, MessageType.Auth);
+        Console.WriteLine($"State: {clientState.GetCurrentState()}");
+        
+        clientState.NextState(MessageType.NotReply, MessageType.Auth);
+        Console.WriteLine($"State: {clientState.GetCurrentState()}");
+       
+        clientState.NextState(MessageType.None, MessageType.Bye);
+        Console.WriteLine($"State: {clientState.GetCurrentState()}");
+        
+        // var usrInput = new UserInputHandler();
+        // usrInput.ProcessInput();
     }
 }
 

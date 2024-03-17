@@ -5,7 +5,7 @@ namespace  ChatApp;
 public class UserInputHandler
 {
     private bool _exit;
-    private TcpClientWrapper tcpClient = new TcpClientWrapper("127.0.0.1", 4567);
+    private TcpClient tcpClient = new TcpClient("127.0.0.1", 4567);
     public void ProcessInput()
     {
         _exit = false;
@@ -33,7 +33,7 @@ public class UserInputHandler
         ErrorHandler.ExitSuccess();
     }
 
-    private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
+    private static void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
     {
         eventArgs.Cancel = true;
         Console.WriteLine("Exit app");

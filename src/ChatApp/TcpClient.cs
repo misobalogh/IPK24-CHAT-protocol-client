@@ -5,14 +5,14 @@ using System.Net.Sockets;
 
 namespace ChatApp
 {
-    public class TcpClientWrapper
+    public class TcpClient
     {
         private readonly Socket _socket;
         private readonly NetworkStream _stream;
         private readonly StreamWriter _writer;
         private readonly StreamReader _reader;
 
-        public TcpClientWrapper(string serverAddress, int serverPort)
+        public TcpClient(string serverAddress, int serverPort)
         {
             try
             {
@@ -67,10 +67,10 @@ namespace ChatApp
 
         public void Close()
         {
-            _reader?.Close();
-            _writer?.Close();
-            _stream?.Close();
-            _socket?.Close();
+            _reader.Close();
+            _writer.Close();
+            _stream.Close();
+            _socket.Close();
         }
     }
 }

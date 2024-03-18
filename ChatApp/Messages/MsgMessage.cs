@@ -11,4 +11,9 @@ public class MsgMessage(string displayName, string messageContent) : Message
     {
         throw new NotImplementedException();
     }
+
+    public override string Output()
+    {
+        throw new NotImplementedException();
+    }
 }

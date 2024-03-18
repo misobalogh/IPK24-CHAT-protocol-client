@@ -11,4 +11,9 @@ public class ConfirmMessage() : Message
     {
         throw new NotImplementedException();
     }
+    
+    public override string Output()
+    {
+        throw new NotImplementedException();
+    }
 }

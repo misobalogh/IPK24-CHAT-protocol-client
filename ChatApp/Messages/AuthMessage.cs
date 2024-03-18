@@ -11,4 +11,9 @@ public class AuthMessage(string username, string displayName, string secret) : M
     {
         throw new NotImplementedException();
     }
+    
+    public override string Output()
+    {
+        throw new NotImplementedException();
+    }
 }

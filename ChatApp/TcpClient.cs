@@ -7,10 +7,10 @@ namespace ChatApp
 {
     public class TcpClient
     {
-        private readonly Socket _socket;
-        private readonly NetworkStream _stream;
-        private readonly StreamWriter _writer;
-        private readonly StreamReader _reader;
+        private readonly Socket? _socket;
+        private readonly NetworkStream? _stream;
+        private readonly StreamWriter? _writer;
+        private readonly StreamReader? _reader;
 
         public TcpClient(string serverAddress, int serverPort)
         {
@@ -30,9 +30,8 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                ErrorHandler.InformUser($"Error occured when connecting to the server: {ex.Message}");
                 Close();
-                throw;
+                ErrorHandler.ExitWith($"Error occured when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
             }
         }
 
@@ -40,8 +39,8 @@ namespace ChatApp
         {
             try
             {
-                _writer.WriteLine(message);
-                _writer.Flush();
+                _writer?.WriteLine(message);
+                _writer?.Flush();
             }
             catch (Exception ex)
             {
@@ -55,7 +54,7 @@ namespace ChatApp
         {
             try
             {
-                return _reader.ReadLine();
+                return _reader?.ReadLine();
             }
             catch (Exception ex)
             {
@@ -67,10 +66,10 @@ namespace ChatApp
 
         public void Close()
         {
-            _reader.Close();
-            _writer.Close();
-            _stream.Close();
-            _socket.Close();
+            _reader?.Close();
+            _writer?.Close();
+            _stream?.Close();
+            _socket?.Close();
         }
     }
 }

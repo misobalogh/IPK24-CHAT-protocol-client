@@ -1,4 +1,5 @@
 using System;
+using System.Net.Sockets;
 using ChatApp.Messages;
 
 namespace  ChatApp;
@@ -7,7 +8,8 @@ public class UserInputHandler
 {
     private bool _exit;
     private string _displayName = "";
-    private TcpClient tcpClient = new TcpClient("127.0.0.1", 4567);
+    private readonly TcpClient _tcpClient = new("127.0.0.1", 4567);
+
     public void ProcessInput()
     {
         _exit = false;
@@ -31,20 +33,20 @@ public class UserInputHandler
                 SendMessage(input);
             }
 
-            string? reply = tcpClient.ReceiveMessage();
+            string? reply = _tcpClient.ReceiveMessage();
             Console.WriteLine(reply);
         }
         
         ErrorHandler.ExitSuccess();
     }
 
-    private static void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
+    private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
     {
         if (eventArgs.SpecialKey == ConsoleSpecialKey.ControlC)
         {
             eventArgs.Cancel = true;
             Message message = new ByeMessage();
-            Console.WriteLine(message.Craft());
+            _tcpClient.SendMessage(message.Craft()); 
             ErrorHandler.ExitSuccess();
         }
         // else if (eventArgs.SpecialKey == ConsoleSpecialKey.ControlD)
@@ -104,7 +106,7 @@ public class UserInputHandler
         _displayName = parametersSplit[2];
 
         Message message = new AuthMessage(username, _displayName, secret);
-        Console.WriteLine(message.Craft());
+        _tcpClient.SendMessage(message.Craft()); 
     }
     
     private void HandleCommandJoin(string parameters)
@@ -119,7 +121,7 @@ public class UserInputHandler
 
         string channelId = parametersSplit[0];
         Message message = new JoinMessage(channelId, _displayName);
-        Console.WriteLine(message.Craft());
+        _tcpClient.SendMessage(message.Craft()); 
     }
     
     private void HandleCommandRename(string parameters)
@@ -155,6 +157,6 @@ public class UserInputHandler
     private void SendMessage(string messageContent)
     {
         Message message = new MsgMessage(_displayName, messageContent);
-        tcpClient.SendMessage(message.Craft());  
+        _tcpClient.SendMessage(message.Craft());  
     }
 }

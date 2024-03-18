@@ -12,4 +12,9 @@ public class ReplyMessage(bool isOk, string messageContent) : Message
     {
         throw new NotImplementedException();
     }
+    
+    public override string Output()
+    {
+        throw new NotImplementedException();
+    }
 }

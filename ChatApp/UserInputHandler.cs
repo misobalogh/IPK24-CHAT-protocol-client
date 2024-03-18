@@ -1,10 +1,12 @@
 using System;
+using ChatApp.Messages;
 
 namespace  ChatApp;
 
 public class UserInputHandler
 {
     private bool _exit;
+    private string _displayName = "";
     private TcpClient tcpClient = new TcpClient("127.0.0.1", 4567);
     public void ProcessInput()
     {
@@ -28,6 +30,9 @@ public class UserInputHandler
             {
                 SendMessage(input);
             }
+
+            string? reply = tcpClient.ReceiveMessage();
+            Console.WriteLine(reply);
         }
         
         ErrorHandler.ExitSuccess();
@@ -35,9 +40,20 @@ public class UserInputHandler
 
     private static void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
     {
-        eventArgs.Cancel = true;
-        Console.WriteLine("Exit app");
-        ErrorHandler.ExitSuccess();
+        if (eventArgs.SpecialKey == ConsoleSpecialKey.ControlC)
+        {
+            eventArgs.Cancel = true;
+            Message message = new ByeMessage();
+            Console.WriteLine(message.Craft());
+            ErrorHandler.ExitSuccess();
+        }
+        // else if (eventArgs.SpecialKey == ConsoleSpecialKey.ControlD)
+        // {
+        //     eventArgs.Cancel = true;
+        //     Message message = new ByeMessage();
+        //     Console.WriteLine(message.Craft());
+        //     ErrorHandler.ExitSuccess();
+        // }
     }
 
     private void ProcessLocalCommand(string command)
@@ -85,12 +101,10 @@ public class UserInputHandler
 
         string username = parametersSplit[0];
         string secret = parametersSplit[1];
-        string displayName = parametersSplit[2];
-        
-        Console.WriteLine("command /auth");
-        Console.WriteLine($"username {username}");
-        Console.WriteLine($"secret {secret}");
-        Console.WriteLine($"display name {displayName}");
+        _displayName = parametersSplit[2];
+
+        Message message = new AuthMessage(username, _displayName, secret);
+        Console.WriteLine(message.Craft());
     }
     
     private void HandleCommandJoin(string parameters)
@@ -104,10 +118,8 @@ public class UserInputHandler
         }
 
         string channelId = parametersSplit[0];
-        
-        Console.WriteLine("command /join");
-        Console.WriteLine($"Channel Id {channelId}");
-
+        Message message = new JoinMessage(channelId, _displayName);
+        Console.WriteLine(message.Craft());
     }
     
     private void HandleCommandRename(string parameters)
@@ -120,10 +132,9 @@ public class UserInputHandler
             return;
         }
 
-        string displayName = parametersSplit[0];
+        _displayName = parametersSplit[0];
         
-        Console.WriteLine("command /rename");
-        Console.WriteLine($"Display Name {displayName}");
+        Console.WriteLine($"NEW DISPLAY NAME {_displayName}");
     }
     
     private void HandleCommandHelp(string parameters)
@@ -141,9 +152,9 @@ public class UserInputHandler
     }
 
        
-    private void SendMessage(string message)
+    private void SendMessage(string messageContent)
     {
-        tcpClient.SendMessage(message);   
-        Console.WriteLine($"Send message: {message}");
+        Message message = new MsgMessage(_displayName, messageContent);
+        tcpClient.SendMessage(message.Craft());  
     }
 }

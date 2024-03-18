@@ -16,6 +16,11 @@ run: build
 help: build
 	./ipk24chat-client -h
 
+restore:
+	dotnet nuget locals all --clear
+	dotnet restore --verbosity diagnostic
+	
+
 clean:
 	rm -rf $(APP_NAME)
 	rm -rf $(SRC_DIR)/$(BIN)

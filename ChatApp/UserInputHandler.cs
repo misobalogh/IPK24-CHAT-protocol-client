@@ -34,10 +34,15 @@ public class UserInputHandler
             }
 
             string? reply = _tcpClient.ReceiveMessage();
-            Console.WriteLine(reply);
+            Message message = ParseRecievedMessag(reply);
         }
         
         ErrorHandler.ExitSuccess();
+    }
+
+    private Message ParseRecievedMessag(string? reply)
+    {
+        throw new NotImplementedException();
     }
 
     private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)

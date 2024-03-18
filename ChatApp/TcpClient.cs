@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using ChatApp.Messages;
 
 namespace ChatApp
 {
@@ -58,9 +59,9 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error receiving message: {ex.Message}");
+                ErrorHandler.InformUser($"Error receiving message: {ex.Message}");
                 Close();
-                throw; 
+                throw;
             }
         }
 

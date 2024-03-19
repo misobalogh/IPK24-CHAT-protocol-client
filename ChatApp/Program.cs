@@ -29,12 +29,11 @@ internal static class Program
         // clientState.NextState(MessageType.None, MessageType.Bye);
         // Console.WriteLine($"State: {clientState.GetCurrentState()}");
         
-        // var usrInput = new UserInputHandler();
-        // usrInput.ProcessInput();
+        var usrInput = new UserInputHandler();
+        usrInput.ProcessInput();
 
-        var msgParser = new MessageParser();
-        var msg = msgParser.ParseMessage("MSG FROM user1 IS hello");
-        Console.WriteLine(msg?.Craft());
+        // var msg = MessageParser.ParseMessage("MSG FROM user1 IS hello");
+        // msg.PrintOutput();
     }
 }
 

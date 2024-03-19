@@ -12,8 +12,8 @@ public class JoinMessage(string channelId, string displayName) : Message
         throw new NotImplementedException();
     }
     
-    public override string Output()
+    public override void PrintOutput()
     {
-        throw new NotImplementedException();
+        return;
     }
 }

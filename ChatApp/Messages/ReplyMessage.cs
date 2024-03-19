@@ -13,8 +13,9 @@ public class ReplyMessage(bool isOk, string messageContent) : Message
         throw new NotImplementedException();
     }
     
-    public override string Output()
+    public override void PrintOutput()
     {
-        throw new NotImplementedException();
+        string status = isOk ? "Success" : "Failure";
+        Console.Error.WriteLine($"{status}: {messageContent}");
     }
 }

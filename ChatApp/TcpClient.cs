@@ -45,7 +45,7 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                ErrorHandler.InformUser($"Error sending message: {ex.Message}");
+                ErrorHandler.InternalError($"Error sending message: {ex.Message}");
                 Close();
                 throw;
             }
@@ -59,7 +59,7 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                ErrorHandler.InformUser($"Error receiving message: {ex.Message}");
+                ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
                 Close();
                 throw;
             }

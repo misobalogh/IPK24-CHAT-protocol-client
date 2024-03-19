@@ -6,7 +6,7 @@ public static class ErrorHandler
 {
     public static void ExitWith(string message, ExitCode exitCode)
     {
-        Console.Error.WriteLine($"ERROR: {message}");
+        InternalError(message);
         Environment.Exit((int)exitCode);
     }
 
@@ -15,8 +15,8 @@ public static class ErrorHandler
         Environment.Exit((int)ExitCode.Success);
     }
 
-    public static void InformUser(string message)
+    public static void InternalError(string messageContent)
     {
-        Console.Error.WriteLine($"WARNING: {message}");
+        Console.Error.WriteLine($"ERR: {messageContent}");
     }
 }

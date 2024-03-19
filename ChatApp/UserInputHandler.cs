@@ -17,32 +17,32 @@ public class UserInputHandler
         
         while (!_exit)
         {
-            string? input = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                continue;
-            }
-
-            if (input.StartsWith("/"))
-            {
-                ProcessLocalCommand(input);
-            }
-            else
-            {
-                SendMessage(input);
-            }
+            // string? input = Console.ReadLine();
+            //
+            // if (string.IsNullOrWhiteSpace(input))
+            // {
+            //     continue;
+            // }
+            //
+            // if (input.StartsWith('/'))
+            // {
+            //     ProcessLocalCommand(input);
+            // }
+            // else
+            // {
+            //     SendMessage(input);
+            // }
 
             string? reply = _tcpClient.ReceiveMessage();
-            Message message = ParseRecievedMessag(reply);
+            if (reply != null)
+            {
+                Message? message = MessageParser.ParseMessage(reply);
+                message?.PrintOutput();
+            }
+            
         }
         
         ErrorHandler.ExitSuccess();
-    }
-
-    private Message ParseRecievedMessag(string? reply)
-    {
-        throw new NotImplementedException();
     }
 
     private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
@@ -90,7 +90,7 @@ public class UserInputHandler
                 HandleCommandHelp(parameters);
                 break;
             default:
-                ErrorHandler.InformUser($"Unknown command: {localCommand}. Try /help for list of supported commands.");
+                ErrorHandler.InternalError($"Unknown command: {localCommand}. Try /help for list of supported commands.");
                 return;
         }
 
@@ -102,7 +102,7 @@ public class UserInputHandler
 
         if (parametersSplit.Length != 3)
         { 
-            ErrorHandler.InformUser("Wrong parameters for command /auth. Try /help");
+            ErrorHandler.InternalError("Wrong parameters for command /auth. Try /help");
             return;
         }
 
@@ -120,7 +120,7 @@ public class UserInputHandler
         
         if (parametersSplit.Length != 1)
         { 
-            ErrorHandler.InformUser("Wrong parameters for command /join. Try /help");
+            ErrorHandler.InternalError("Wrong parameters for command /join. Try /help");
             return;
         }
 
@@ -135,7 +135,7 @@ public class UserInputHandler
         
         if (parametersSplit.Length != 1)
         { 
-            ErrorHandler.InformUser("Wrong parameters for command /rename. Try /help");
+            ErrorHandler.InternalError("Wrong parameters for command /rename. Try /help");
             return;
         }
 
@@ -148,7 +148,7 @@ public class UserInputHandler
     {
         if (!string.IsNullOrEmpty(parameters))
         {
-            ErrorHandler.InformUser($"Wrong parameters - command /help does not support any parameters");
+            ErrorHandler.InternalError($"Wrong parameters - command /help does not support any parameters");
             return;
         }
         Console.WriteLine("Available commands:");

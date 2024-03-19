@@ -12,8 +12,8 @@ public class ByeMessage : Message
         throw new NotImplementedException();
     }
     
-    public override string Output()
+    public override void PrintOutput()
     {
-        throw new NotImplementedException();
+        return;
     }
 }

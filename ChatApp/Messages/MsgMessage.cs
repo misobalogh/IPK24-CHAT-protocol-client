@@ -12,8 +12,8 @@ public class MsgMessage(string displayName, string messageContent) : Message
         throw new NotImplementedException();
     }
 
-    public override string Output()
+    public override void PrintOutput()
     {
-        throw new NotImplementedException();
+        Console.WriteLine($"{displayName}: {messageContent}");
     }
 }

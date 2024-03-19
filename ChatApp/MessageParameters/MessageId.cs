@@ -9,7 +9,7 @@ public class MessageId(ushort id)
     {
         if (!ushort.TryParse(userInput, out ushort messageId))
         {
-            ErrorHandler.InformUser("Wrong messageId");
+            ErrorHandler.InternalError("Wrong messageId");
         }
 
         return new MessageId(messageId);

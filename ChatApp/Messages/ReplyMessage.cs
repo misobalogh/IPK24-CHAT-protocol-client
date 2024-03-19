@@ -1,7 +1,10 @@
+using ChatApp.Enums;
+
 namespace ChatApp.Messages;
 
 public class ReplyMessage(bool isOk, string messageContent) : Message
 {
+    public override MessageType Type => isOk ? MessageType.Reply : MessageType.NotReply;
     public override string? Craft()
     {
         if (MessageGrammar.IsContent(messageContent))

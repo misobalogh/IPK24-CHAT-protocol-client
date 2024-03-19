@@ -1,7 +1,11 @@
+using ChatApp.Enums;
+
 namespace ChatApp.Messages;
 
 public class AuthMessage(string username, string displayName, string secret) : Message
 {
+    public override MessageType Type => MessageType.Auth;
+
     public override string? Craft()
     {
         if (MessageGrammar.IsId(username)

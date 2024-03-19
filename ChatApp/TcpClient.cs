@@ -2,15 +2,16 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using ChatApp.Messages;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ChatApp;
 public class TcpClient
 {
-    private readonly Socket? _socket;
-    private readonly NetworkStream? _stream;
-    private readonly StreamWriter? _writer;
-    private readonly StreamReader? _reader;
+    private readonly Socket _socket = null!;
+    private readonly NetworkStream _stream = null!;
+    private readonly StreamWriter _writer = null!;
+    private readonly StreamReader _reader = null!;
 
     public TcpClient(string serverAddress, int serverPort)
     {
@@ -25,8 +26,8 @@ public class TcpClient
             
             _stream = new NetworkStream(_socket);
             
-            _writer = new StreamWriter(_stream);
-            _reader = new StreamReader(_stream);
+            _writer = new StreamWriter(_stream, Encoding.ASCII);
+            _reader = new StreamReader(_stream, Encoding.ASCII);
         }
         catch (Exception ex)
         {
@@ -35,29 +36,28 @@ public class TcpClient
         }
     }
 
-    public void SendMessage(string? message)
+    public async Task SendMessageAsync(string? message)
     {
-        if (message != null)
+        
+        try
         {
-            try
-            {
-                _writer?.WriteLine(message);
-                _writer?.Flush();
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.InternalError($"Error sending message: {ex.Message}");
-                Close();
-                throw;
-            }
+            await _writer.WriteLineAsync(message);
+            await _writer.FlushAsync();
         }
+        catch (Exception ex)
+        {
+            ErrorHandler.InternalError($"Error sending message: {ex.Message}");
+            Close();
+            throw;
+        }
+      
     }
 
-    public string? ReceiveMessage()
+    public async Task<string?> ReceiveMessageAsync()
     {
         try
         {
-            return _reader?.ReadLine();
+            return await _reader.ReadLineAsync();
         }
         catch (Exception ex)
         {
@@ -69,10 +69,10 @@ public class TcpClient
 
     public void Close()
     {
-        _reader?.Close();
-        _writer?.Close();
-        _stream?.Close();
-        _socket?.Close();
+        _reader.Close();
+        _writer.Close();
+        _stream.Close();
+        _socket.Close();
     }
 }
 

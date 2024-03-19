@@ -37,7 +37,8 @@ public static class MessageParser
 
     private static Message? ParseErrMessage(string[] messageParts)
     {
-        if (MessageGrammar.IsDname(messageParts[2])
+        if (messageParts.Length >= 5 
+            && MessageGrammar.IsDname(messageParts[2])
             && MessageGrammar.IsComponentIS(messageParts[3])
             && MessageGrammar.IsContent(messageParts[4]))
         {
@@ -51,7 +52,8 @@ public static class MessageParser
 
     private static Message? ParseMsgMessage(string[] messageParts)
     {
-        if (MessageGrammar.IsDname(messageParts[2])
+        if (messageParts.Length >= 5 
+            && MessageGrammar.IsDname(messageParts[2])
             && MessageGrammar.IsComponentIS(messageParts[3])
             && MessageGrammar.IsContent(messageParts[4]))
         {
@@ -65,7 +67,8 @@ public static class MessageParser
 
     private static Message? ParseReplyMessage(string[] messageParts)
     {
-        if (MessageGrammar.IsComponentOKorNOK(messageParts[1])
+       if (messageParts.Length >= 4 
+            && MessageGrammar.IsComponentOKorNOK(messageParts[1])
             && MessageGrammar.IsComponentIS(messageParts[2])
             && MessageGrammar.IsContent(messageParts[3]))
         {

@@ -1,7 +1,10 @@
+using ChatApp.Enums;
+
 namespace ChatApp.Messages;
 
 public class JoinMessage(string channelId, string displayName) : Message
 {
+    public override MessageType Type => MessageType.Join;
     public override string? Craft()
     {
         if (MessageGrammar.IsId(channelId)

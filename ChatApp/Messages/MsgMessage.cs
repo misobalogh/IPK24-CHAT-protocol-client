@@ -1,7 +1,11 @@
+using ChatApp.Enums;
+
 namespace ChatApp.Messages;
 
 public class MsgMessage(string displayName, string messageContent) : Message
 {
+    public override MessageType Type => MessageType.Msg;
+
     public override string? Craft()
     {
         if (MessageGrammar.IsDname(displayName)

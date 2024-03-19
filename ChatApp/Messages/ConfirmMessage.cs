@@ -1,7 +1,10 @@
+using ChatApp.Enums;
+
 namespace ChatApp.Messages;
 
 public class ConfirmMessage() : Message
 {
+    public override MessageType Type => MessageType.Confirm;
     public override string? Craft()
     {
         throw new NotImplementedException();

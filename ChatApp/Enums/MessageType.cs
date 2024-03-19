@@ -10,5 +10,6 @@ public enum MessageType
     Auth,
     Join,
     Msg,
-    Bye
+    Bye,
+    MsgOrJoin
 }

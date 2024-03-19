@@ -5,96 +5,105 @@ namespace ChatApp;
 public class ClientState
 {
     private State _currentState = State.Start;
-    public State NextState(MessageType clientInput, MessageType clientOutput)
+    public State NextState(MessageType clientInput, out MessageType clientOutput)
     {
+        clientOutput = MessageType.None;
         switch (_currentState)
         {
             case State.Start:
-                if (clientInput == MessageType.None && clientOutput == MessageType.Auth)
+                if (clientInput == MessageType.None)
                 {
                     _currentState = State.Auth;
+                    clientOutput = MessageType.Auth;
                 }
                 else
                 {
                     _currentState = State.Error;
+                    clientOutput = MessageType.Err;
                 }
                 break;
             
             case State.Auth:
-                if (clientInput is MessageType.NotReply && clientOutput == MessageType.Auth)
+                if (clientInput is MessageType.NotReply)
                 {
                     _currentState = State.Auth;
+                    clientOutput = MessageType.Auth;
                 }
 
-                else if (clientInput == MessageType.Reply && clientOutput == MessageType.None)
+                else if (clientInput == MessageType.Reply)
                 {
                     _currentState = State.Open;
-                    
+                    clientOutput = MessageType.None;
+
                 }
 
-                else if (clientInput is MessageType.Err or MessageType.None && clientOutput == MessageType.Bye)
+                else if (clientInput is MessageType.Err or MessageType.None)
                 {
                     _currentState = State.End;
+                    clientOutput = MessageType.Bye;
                 }
 
                 else
                 {
                     _currentState = State.Error;
+                    clientOutput = MessageType.Err;
                 }
                 
                 break;
             
             case State.Open:
-                if (clientInput is MessageType.Msg or MessageType.Reply or MessageType.NotReply && clientOutput == MessageType.None)
+                if (clientInput is MessageType.Msg or MessageType.Reply or MessageType.NotReply)
                 {
                     _currentState = State.Open;
+                    clientOutput = MessageType.None;
                 }
                 
-                else if (clientInput == MessageType.None && clientOutput is MessageType.Join or MessageType.Msg)
+                else if (clientInput == MessageType.None)
                 {
                     _currentState = State.Open;
+                    clientOutput = MessageType.MsgOrJoin;
                 }
-                
-                else if ((clientInput == MessageType.Err && clientOutput == MessageType.Bye)
-                         || (clientInput == MessageType.Bye && clientOutput == MessageType.None))
+                else if (clientInput == MessageType.Err)
                 {
                     _currentState = State.End;
+                    clientOutput = MessageType.Bye;
                 }
-
+                else if (clientInput == MessageType.Bye)
+                {
+                    _currentState = State.End;
+                    clientOutput = MessageType.None;
+                }
                 else
                 {
                     _currentState = State.Error;
+                    clientOutput = MessageType.Err;
                 }
                 
                 break;
             
             case State.Error:
-                if (clientInput == MessageType.None && clientOutput == MessageType.Bye)
+                if (clientInput == MessageType.None)
                 {
                     _currentState = State.End;
+                    clientOutput = MessageType.Bye;
                 }
                 else
                 {
                     _currentState = State.Error;
+                    clientOutput = MessageType.Err;
                 }
                 break;
             
             case State.End:
-                if (clientOutput == MessageType.None)
-                {
-                    _currentState = State.End;
-                }
-                else
-                {
-                    _currentState = State.Error;
-                }
+                clientOutput = MessageType.None;
+                _currentState = State.End;
                 break;
             
             default:
-                ErrorHandler.ExitWith($"Invalid message type {clientInput} or {clientOutput}.", ExitCode.UnknownMessageType);
+                ErrorHandler.ExitWith($"Invalid message type {clientInput}.", ExitCode.UnknownMessageType);
                 break;
         }
-
+        
         return _currentState;
     }
 

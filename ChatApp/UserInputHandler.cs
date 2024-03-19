@@ -66,7 +66,7 @@ namespace ChatApp
 
                 
                     _sentMessageType = message.Type;
-                    _clientState.NextState(_receivedMessageType, _sentMessageType);
+                    _clientState.NextState(_receivedMessageType, out _sentMessageType);
                     
                     _waitingForReply = _clientState.GetCurrentState() == State.Auth;
                     
@@ -107,7 +107,7 @@ namespace ChatApp
                     _receivedMessageType = message?.Type ?? MessageType.None;
                     message?.PrintOutput();
 
-                    _clientState.NextState(_receivedMessageType, _sentMessageType);
+                    _clientState.NextState(_receivedMessageType, out _sentMessageType);
 
                     _receivedMessageType = MessageType.None;
                     
@@ -207,7 +207,7 @@ namespace ChatApp
             if (_clientState.GetCurrentState() != State.Auth && _clientState.GetCurrentState() != State.Start)
             {
                 _sentMessageType = MessageType.Auth;
-                _clientState.NextState(_receivedMessageType, _sentMessageType);
+                _clientState.NextState(_receivedMessageType, out _sentMessageType);
                 
                 ErrorHandler.InternalError("Cannot use /auth in current state of the client");
                 _sentMessageType = MessageType.None;

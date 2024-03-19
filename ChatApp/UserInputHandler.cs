@@ -14,35 +14,29 @@ public class UserInputHandler
     {
         _exit = false;
         Console.CancelKeyPress += OnCancelKeyPress;
+    
+        string? input = Console.ReadLine();
         
-        while (!_exit)
+        if (string.IsNullOrWhiteSpace(input))
         {
-            // string? input = Console.ReadLine();
-            //
-            // if (string.IsNullOrWhiteSpace(input))
-            // {
-            //     continue;
-            // }
-            //
-            // if (input.StartsWith('/'))
-            // {
-            //     ProcessLocalCommand(input);
-            // }
-            // else
-            // {
-            //     SendMessage(input);
-            // }
-
-            string? reply = _tcpClient.ReceiveMessage();
-            if (reply != null)
-            {
-                Message? message = MessageParser.ParseMessage(reply);
-                message?.PrintOutput();
-            }
-            
+            return;
         }
         
-        ErrorHandler.ExitSuccess();
+        if (input.StartsWith('/'))
+        {
+            ProcessLocalCommand(input);
+        }
+        else
+        {
+            SendMessage(input);
+        }
+
+        string? reply = _tcpClient.ReceiveMessage();
+        if (reply != null)
+        {
+            Message? message = MessageParser.ParseMessage(reply);
+            message?.PrintOutput();
+        }
     }
 
     private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)

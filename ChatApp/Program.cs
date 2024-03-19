@@ -15,25 +15,7 @@ internal static class Program
         Console.WriteLine($"Server Port: {cmdArgs.ServerPort}");
         Console.WriteLine($"UDP Timeout: {cmdArgs.UdpTimeout}");
         Console.WriteLine($"Max Retransmissions: {cmdArgs.MaxRetransmissions}");
-
-
-        // var clientState = new ClientState();
-        // Console.WriteLine($"State: {clientState.GetCurrentState()}");
-        //
-        // clientState.NextState(MessageType.None, MessageType.Auth);
-        // Console.WriteLine($"State: {clientState.GetCurrentState()}");
-        //
-        // clientState.NextState(MessageType.NotReply, MessageType.Auth);
-        // Console.WriteLine($"State: {clientState.GetCurrentState()}");
-        //
-        // clientState.NextState(MessageType.None, MessageType.Bye);
-        // Console.WriteLine($"State: {clientState.GetCurrentState()}");
         
-        var usrInput = new UserInputHandler();
-        usrInput.ProcessInput();
-
-        // var msg = MessageParser.ParseMessage("MSG FROM user1 IS hello");
-        // msg.PrintOutput();
     }
 }
 

@@ -2,9 +2,16 @@ namespace ChatApp.Messages;
 
 public class ErrMessage(string displayName, string messageContent) : Message
 {
-    public override string Craft()
+    public override string? Craft()
     {
-        return $"ERR FROM {displayName} IS {messageContent}\r\n";
+        if (MessageGrammar.IsDname(displayName)
+            && MessageGrammar.IsContent(messageContent))
+        {
+            return $"ERR FROM {displayName} IS {messageContent}\r\n";
+        }
+
+        ErrorHandler.InternalError("Invalid format of ERR message");
+        return null;
     }
 
     public override void CheckReceivedMessage(Message message)

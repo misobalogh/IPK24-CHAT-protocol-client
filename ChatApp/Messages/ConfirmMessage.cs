@@ -2,7 +2,7 @@ namespace ChatApp.Messages;
 
 public class ConfirmMessage() : Message
 {
-    public override string Craft()
+    public override string? Craft()
     {
         throw new NotImplementedException();
     }

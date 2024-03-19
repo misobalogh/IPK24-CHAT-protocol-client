@@ -5,7 +5,7 @@ namespace ChatApp;
 public class ClientState
 {
     private State _currentState = State.Start;
-
+    private UserInputHandler _userInputHandler = new UserInputHandler();
     public State NextState(MessageType clientInput, MessageType clientOutput)
     {
         switch (_currentState)

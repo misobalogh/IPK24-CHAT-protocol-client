@@ -10,8 +10,8 @@ public static class MessageParser
     {
         Parsers = new Dictionary<string, Func<string[], Message?>>
         {
-            { "ERR", ParseErrorMessage },
-            { "MSG", ParseMessageMessage },
+            { "ERR FROM", ParseErrMessage },
+            { "MSG FROM", ParseMsgMessage },
             { "REPLY", ParseReplyMessage },
             { "AUTH", ParseAuthMessage },
             { "JOIN", ParseJoinMessage },
@@ -35,73 +35,78 @@ public static class MessageParser
         return null;
     }
 
-    private static Message? ParseErrorMessage(string[] messageParts)
+    private static Message? ParseErrMessage(string[] messageParts)
     {
-        if (messageParts.Length != 5
-            || !messageParts[1].Equals("FROM", StringComparison.OrdinalIgnoreCase)
-            || !messageParts[3].Equals("IS", StringComparison.OrdinalIgnoreCase))
+        if (MessageGrammar.IsDname(messageParts[2])
+            && MessageGrammar.IsComponentIS(messageParts[3])
+            && MessageGrammar.IsContent(messageParts[4]))
         {
-            ErrorHandler.InternalError("Invalid ERR message format");
-            return null;
+            return new ErrMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
+        
+        ErrorHandler.InternalError("Invalid ERR message format");
+        return null;
 
-        return new ErrMessage(messageParts[2], messageParts[4]);
     }
 
-    private static Message? ParseMessageMessage(string[] messageParts)
+    private static Message? ParseMsgMessage(string[] messageParts)
     {
-        if (messageParts.Length != 5
-            || !messageParts[1].Equals("FROM", StringComparison.OrdinalIgnoreCase)
-            || !messageParts[3].Equals("IS", StringComparison.OrdinalIgnoreCase))
+        if (MessageGrammar.IsDname(messageParts[2])
+            && MessageGrammar.IsComponentIS(messageParts[3])
+            && MessageGrammar.IsContent(messageParts[4]))
         {
-            ErrorHandler.InternalError("Invalid MSG message format");
-            return null;
+            return new MsgMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
+        
+        ErrorHandler.InternalError("Invalid MSG message format");
+        return null;
 
-        return new MsgMessage(messageParts[2], messageParts[4]);
     }
 
     private static Message? ParseReplyMessage(string[] messageParts)
     {
-        if (messageParts.Length != 4 || !messageParts[2].Equals("IS", StringComparison.OrdinalIgnoreCase))
+        if (MessageGrammar.IsComponentOKorNOK(messageParts[1])
+            && MessageGrammar.IsComponentIS(messageParts[2])
+            && MessageGrammar.IsContent(messageParts[3]))
         {
-            ErrorHandler.InternalError("Invalid REPLY message format");
-            return null;
+            bool isOk = messageParts[1].Equals("OK", StringComparison.OrdinalIgnoreCase);
+            return new ReplyMessage(isOk, string.Join(" ", messageParts[3..]));
         }
 
-        if (!messageParts[1].Equals("OK", StringComparison.OrdinalIgnoreCase) &&
-            !messageParts[1].Equals("NOK", StringComparison.OrdinalIgnoreCase))
-        {
-            ErrorHandler.InternalError("Invalid REPLY message format");
-            return null;
-        }
-
-        bool isOk = messageParts[1].Equals("OK", StringComparison.OrdinalIgnoreCase);
-        return new ReplyMessage(isOk, messageParts[3]);
+        ErrorHandler.InternalError("Invalid REPLY message format");
+        return null;
     }
 
     private static Message? ParseAuthMessage(string[] messageParts)
     {
-        if (messageParts.Length != 6 ||
-            !messageParts[2].Equals("AS", StringComparison.OrdinalIgnoreCase) ||
-            !messageParts[4].Equals("USING", StringComparison.OrdinalIgnoreCase))
+        if (messageParts.Length == 6 
+            && MessageGrammar.IsId(messageParts[1]) 
+            && MessageGrammar.IsComponentAS(messageParts[2]) 
+            && MessageGrammar.IsDname(messageParts[3])
+            && MessageGrammar.IsComponentUSING(messageParts[4]) 
+            && MessageGrammar.IsSecret(messageParts[5]))
         {
-            ErrorHandler.InternalError("Invalid AUTH message format");
-            return null;
+            return new AuthMessage(messageParts[1], messageParts[3], messageParts[5]);
         }
+        
+        ErrorHandler.InternalError("Invalid AUTH message format");
+        return null;
 
-        return new AuthMessage(messageParts[1], messageParts[3], messageParts[5]);
     }
 
     private static Message? ParseJoinMessage(string[] messageParts)
     {
-        if (messageParts.Length != 4 || !messageParts[2].Equals("AS", StringComparison.OrdinalIgnoreCase))
+        if (messageParts.Length == 4 
+            && MessageGrammar.IsId(messageParts[1])
+            && MessageGrammar.IsComponentAS(messageParts[2])
+            && MessageGrammar.IsDname(messageParts[3]))
         {
-            ErrorHandler.InternalError("Invalid JOIN message format");
-            return null;
+            return new JoinMessage(messageParts[1], messageParts[3]);
         }
+        
+        ErrorHandler.InternalError("Invalid JOIN message format");
+        return null;
 
-        return new JoinMessage(messageParts[1], messageParts[3]);
     }
 
     private static Message? ParseByeMessage(string[] messageParts)

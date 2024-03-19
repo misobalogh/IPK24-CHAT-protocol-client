@@ -2,9 +2,17 @@ namespace ChatApp.Messages;
 
 public class JoinMessage(string channelId, string displayName) : Message
 {
-    public override string Craft()
+    public override string? Craft()
     {
-        return $"JOIN {channelId} AS {displayName}\r\n";
+        if (MessageGrammar.IsId(channelId)
+            && MessageGrammar.IsDname(displayName))
+        {
+            return $"JOIN {channelId} AS {displayName}\r\n";
+        }
+        
+        ErrorHandler.InternalError("Invalid format of JOIN message");
+        return null;
+        
     }
 
     public override void CheckReceivedMessage(Message message)

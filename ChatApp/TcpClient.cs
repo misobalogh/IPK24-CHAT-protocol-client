@@ -4,39 +4,40 @@ using System.Net;
 using System.Net.Sockets;
 using ChatApp.Messages;
 
-namespace ChatApp
+namespace ChatApp;
+public class TcpClient
 {
-    public class TcpClient
+    private readonly Socket? _socket;
+    private readonly NetworkStream? _stream;
+    private readonly StreamWriter? _writer;
+    private readonly StreamReader? _reader;
+
+    public TcpClient(string serverAddress, int serverPort)
     {
-        private readonly Socket? _socket;
-        private readonly NetworkStream? _stream;
-        private readonly StreamWriter? _writer;
-        private readonly StreamReader? _reader;
-
-        public TcpClient(string serverAddress, int serverPort)
+        try
         {
-            try
-            {
-                IPAddress address = IPAddress.Parse(serverAddress);
-                
-                _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                
-                IPEndPoint endPoint = new IPEndPoint(address, serverPort);
-                _socket.Connect(endPoint);
-                
-                _stream = new NetworkStream(_socket);
-                
-                _writer = new StreamWriter(_stream);
-                _reader = new StreamReader(_stream);
-            }
-            catch (Exception ex)
-            {
-                Close();
-                ErrorHandler.ExitWith($"Error occured when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
-            }
+            IPAddress address = IPAddress.Parse(serverAddress);
+            
+            _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            
+            IPEndPoint endPoint = new IPEndPoint(address, serverPort);
+            _socket.Connect(endPoint);
+            
+            _stream = new NetworkStream(_socket);
+            
+            _writer = new StreamWriter(_stream);
+            _reader = new StreamReader(_stream);
         }
+        catch (Exception ex)
+        {
+            Close();
+            ErrorHandler.ExitWith($"Error occured when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
+        }
+    }
 
-        public void SendMessage(string message)
+    public void SendMessage(string? message)
+    {
+        if (message != null)
         {
             try
             {
@@ -50,27 +51,28 @@ namespace ChatApp
                 throw;
             }
         }
+    }
 
-        public string? ReceiveMessage()
+    public string? ReceiveMessage()
+    {
+        try
         {
-            try
-            {
-                return _reader?.ReadLine();
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
-                Close();
-                throw;
-            }
+            return _reader?.ReadLine();
         }
-
-        public void Close()
+        catch (Exception ex)
         {
-            _reader?.Close();
-            _writer?.Close();
-            _stream?.Close();
-            _socket?.Close();
+            ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
+            Close();
+            throw;
         }
     }
+
+    public void Close()
+    {
+        _reader?.Close();
+        _writer?.Close();
+        _stream?.Close();
+        _socket?.Close();
+    }
 }
+

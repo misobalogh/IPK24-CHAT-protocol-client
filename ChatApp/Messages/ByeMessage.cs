@@ -2,7 +2,7 @@ namespace ChatApp.Messages;
 
 public class ByeMessage : Message
 {
-    public override string Craft()
+    public override string? Craft()
     {
         return "BYE\r\n";
     }

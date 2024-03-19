@@ -2,10 +2,17 @@ namespace ChatApp.Messages;
 
 public class ReplyMessage(bool isOk, string messageContent) : Message
 {
-    public override string Craft()
+    public override string? Craft()
     {
-        string status = isOk ? "OK" : "NOK";
-        return $"REPLY {status} IS {messageContent}\r\n";
+        if (MessageGrammar.IsContent(messageContent))
+        {
+            string status = isOk ? "OK" : "NOK";
+            return $"REPLY {status} IS {messageContent}\r\n";
+        }
+
+        ErrorHandler.InternalError("Invalid format of MSG message");
+        return null;
+       
     }
 
     public override void CheckReceivedMessage(Message message)

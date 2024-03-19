@@ -1,0 +1,4 @@
+/auth user1 1234 jupik
+REPLY OK IS successful authorization :)
+hello everybody
+REPLY OK IS successfuly sent message

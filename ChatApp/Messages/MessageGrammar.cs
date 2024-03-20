@@ -7,7 +7,7 @@ public static class MessageGrammar
 {
     public static bool IsId(string contentComponent)
     {
-        const string pattern = @"^[A-Za-z0-9-]{1,20}$";
+        const string pattern = @"^[A-Za-z0-9-.]{1,20}$";
         return Regex.IsMatch(contentComponent, pattern);
     }
 

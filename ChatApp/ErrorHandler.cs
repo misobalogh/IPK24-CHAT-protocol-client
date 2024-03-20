@@ -9,6 +9,11 @@ public static class ErrorHandler
         InternalError(message);
         Environment.Exit((int)exitCode);
     }
+    
+    public static void InformUser(string messageContent)
+    {
+        Console.Error.WriteLine(messageContent);
+    }
 
     public static void ExitSuccess()
     {

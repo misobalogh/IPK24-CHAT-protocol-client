@@ -17,15 +17,24 @@ public class TcpClient
     {
         try
         {
-            IPAddress address = IPAddress.Parse(serverAddress);
-            
+            if (!IPAddress.TryParse(serverAddress, out var address))
+            {
+                IPAddress[] addresses = Dns.GetHostAddresses(serverAddress);
+                if (addresses.Length == 0)
+                {
+                    ErrorHandler.ExitWith("Failed to resolve server address", ExitCode.ConnectionError);
+                }
+
+                address = addresses[0];
+            }
+
             _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            
+
             IPEndPoint endPoint = new IPEndPoint(address, serverPort);
             _socket.Connect(endPoint);
-            
+
             _stream = new NetworkStream(_socket);
-            
+
             _writer = new StreamWriter(_stream, Encoding.ASCII);
             _reader = new StreamReader(_stream, Encoding.ASCII);
         }
@@ -41,7 +50,7 @@ public class TcpClient
         
         try
         {
-            await _writer.WriteLineAsync(message);
+            await _writer.WriteAsync(message);
             await _writer.FlushAsync();
         }
         catch (Exception ex)
@@ -69,10 +78,10 @@ public class TcpClient
 
     public void Close()
     {
-        _reader.Close();
-        _writer.Close();
-        _stream.Close();
-        _socket.Close();
+        _reader?.Close();
+        _writer?.Close();
+        _stream?.Close();
+        _socket?.Close();
     }
 }
 

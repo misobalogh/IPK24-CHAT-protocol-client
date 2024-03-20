@@ -5,20 +5,22 @@ using ChatApp.Messages;
 
 namespace ChatApp
 {
-    public class UserInputHandler
+    public class UserInputHandler(string transportProtocol, string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
     {
         private bool _exit;
         private string _displayName = "";
-        private readonly TcpClient _tcpClient = new("127.0.0.1", 4567);
+        private readonly TcpClient _tcpClient = new(serverAddress, serverPort);
         private readonly SemaphoreSlim _messageSemaphore = new(1, 1);
         private readonly Queue<Message> _messageQueue = new();
-        private bool _waitingForReply;
         private readonly ClientState _clientState = new();
+        private bool _waitingForReply = false;
         private MessageType _receivedMessageType = MessageType.None;
-        private MessageType _sentMessageType = MessageType.None;
+        private MessageType _possibleClientMessageType = MessageType.Auth;
 
         public async Task ProcessInput()
         {
+            _clientState.NextState(_receivedMessageType,out _possibleClientMessageType);
+            
             _exit = false;
             Console.CancelKeyPress += OnCancelKeyPress;
 
@@ -39,18 +41,11 @@ namespace ChatApp
                 }
                 else
                 {
-                    if (_clientState.GetCurrentState() == State.Open)
-                    {
-                        Message message = new MsgMessage(_displayName, input);
-                        await EnqueueMessageAsync(message);
-                    }
-                    else
-                    {
-                        ErrorHandler.InternalError("Cannot send messages in current state. U have to use /auth first");
-                    }
+                   Message message = new MsgMessage(_displayName, input);
+                   await EnqueueMessageAsync(message);
                 }
             }
-
+    
             await receivingTask;
 
             ErrorHandler.ExitSuccess();
@@ -63,19 +58,29 @@ namespace ChatApp
             try
             {
                 _messageQueue.Enqueue(message);
+                
+                if (_waitingForReply)
+                {
+                    return;
+                }
 
+                var messageToProcess = _messageQueue.Dequeue();
+                if (messageToProcess.Type is MessageType.Auth or MessageType.Join)
+                {
+                    _waitingForReply = true;
+                }
                 
-                    _sentMessageType = message.Type;
-                    _clientState.NextState(_receivedMessageType, out _sentMessageType);
-                    
-                    _waitingForReply = _clientState.GetCurrentState() == State.Auth;
-                    
-                    await SendMessageAsync(_messageQueue.Dequeue().Craft());
-                    _sentMessageType = MessageType.None;
-                    
-                    Console.WriteLine($"STATE {_clientState.GetCurrentState()} {_receivedMessageType} {_sentMessageType}");
-                    
+                bool isValidMessageType = messageToProcess.Type == _possibleClientMessageType ||
+                                          (_possibleClientMessageType == MessageType.MsgOrJoin &&
+                                           messageToProcess.Type is MessageType.Msg or MessageType.Join);
                 
+                if (!isValidMessageType && !_waitingForReply)
+                {
+                    ErrorHandler.InternalError($"Cannot send message of type {messageToProcess.Type} in the current client state");
+                    return;
+                }
+                
+                await SendMessageAsync(messageToProcess.Craft());
             }
             finally
             {
@@ -105,31 +110,54 @@ namespace ChatApp
                     
                     Message? message = MessageParser.ParseMessage(reply);
                     _receivedMessageType = message?.Type ?? MessageType.None;
+                    
+                    if (_receivedMessageType == MessageType.Bye)
+                    {
+                        _tcpClient.Close();
+                        ErrorHandler.InformUser("Connection terminated from server");
+                        ErrorHandler.ExitSuccess();
+                    }
+
+                    if (_receivedMessageType == MessageType.Err)
+                    {
+                        await _tcpClient.SendMessageAsync(new ByeMessage().Craft());
+                        _tcpClient.Close();
+                        ErrorHandler.ExitSuccess();
+                    }
+                    
+                    if (_receivedMessageType == MessageType.Reply)
+                    {
+                        _waitingForReply = false;
+                    }
+
+                    _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
+
+                    if (_clientState.GetCurrentState() == State.Error)
+                    {
+                        await _tcpClient.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").Craft());
+                        message?.PrintOutput();
+                        _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
+                        await _tcpClient.SendMessageAsync(new ByeMessage().Craft());
+                        ErrorHandler.ExitSuccess();
+                    }
+                    
                     message?.PrintOutput();
-
-                    _clientState.NextState(_receivedMessageType, out _sentMessageType);
-
-                    _receivedMessageType = MessageType.None;
-                    
-                    Console.WriteLine($"STATE {_clientState.GetCurrentState()} {_receivedMessageType} {_sentMessageType}");
-
-                    
-                    // if (!_waitingForReply || _receivedMessageType != MessageType.Reply)
-                    // {
-                    //     continue;
-                    // }
                     
                     await _messageSemaphore.WaitAsync();
 
                     try
                     {
-                        if (_messageQueue.Count > 0)
+                        if (!_waitingForReply)
                         {
-                            await SendMessageAsync(_messageQueue.Dequeue().Craft());
-                        }
-                        else
-                        {
-                            _waitingForReply = false;
+                            while (_messageQueue.Count > 0 && !_waitingForReply)
+                            {
+                                var messageToSent = _messageQueue.Dequeue();
+                                await SendMessageAsync(messageToSent.Craft());
+                                if (messageToSent.Type is MessageType.Auth or MessageType.Join)
+                                {
+                                    _waitingForReply = true;
+                                }
+                            }
                         }
                     }
                     finally
@@ -203,16 +231,6 @@ namespace ChatApp
                 ErrorHandler.InternalError("Wrong parameters for command /auth. Try /help");
                 return;
             }
-
-            if (_clientState.GetCurrentState() != State.Auth && _clientState.GetCurrentState() != State.Start)
-            {
-                _sentMessageType = MessageType.Auth;
-                _clientState.NextState(_receivedMessageType, out _sentMessageType);
-                
-                ErrorHandler.InternalError("Cannot use /auth in current state of the client");
-                _sentMessageType = MessageType.None;
-                return;
-            }
             
             string username = parametersSplit[0];
             string secret = parametersSplit[1];
@@ -225,10 +243,16 @@ namespace ChatApp
         private async Task HandleCommandJoin(string parameters)
         {
             string[] parametersSplit = parameters.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
+            
             if (parametersSplit.Length != 1)
             {
                 ErrorHandler.InternalError("Wrong parameters for command /join. Try /help");
+                return;
+            }
+
+            if (_clientState.GetCurrentState() != State.Open)
+            {
+                ErrorHandler.InternalError("Cannot use /join in the current state of the client");
                 return;
             }
 

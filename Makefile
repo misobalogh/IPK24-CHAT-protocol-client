@@ -1,5 +1,5 @@
 APP_NAME = ipk24chat-client
-SRC_DIR = ./src/ChatApp
+SRC_DIR = ./ChatApp
 BIN = bin
 OBJ = obj
 
@@ -11,10 +11,13 @@ build:
 	dotnet publish -c Release /p:DebugType=None -o .
 	
 run: build
-	./ipk24chat-client -t tcp -s 4040 
+	./$(APP_NAME) -t tcp -s 127.0.0.1 -p 4567
+
+discord: build
+	./$(APP_NAME) -t tcp -s anton5.fit.vutbr.cz -p 4567
 
 help: build
-	./ipk24chat-client -h
+	./$(APP_NAME) -h
 
 restore:
 	dotnet nuget locals all --clear

@@ -33,7 +33,7 @@ public class ClientState
                 else if (clientInput == MessageType.Reply)
                 {
                     _currentState = State.Open;
-                    clientOutput = MessageType.None;
+                    clientOutput = MessageType.MsgOrJoin;
 
                 }
 
@@ -55,7 +55,7 @@ public class ClientState
                 if (clientInput is MessageType.Msg or MessageType.Reply or MessageType.NotReply)
                 {
                     _currentState = State.Open;
-                    clientOutput = MessageType.None;
+                    clientOutput = MessageType.MsgOrJoin;
                 }
                 
                 else if (clientInput == MessageType.None)

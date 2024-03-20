@@ -31,7 +31,7 @@ public static class MessageParser
             }
         }
 
-        ErrorHandler.InternalError("Received unknown message");
+        ErrorHandler.InformUser("Received unknown message");
         return null;
     }
 
@@ -45,7 +45,7 @@ public static class MessageParser
             return new ErrMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
         
-        ErrorHandler.InternalError("Invalid ERR message format");
+        ErrorHandler.InformUser("Received unknown message");
         return null;
 
     }
@@ -60,7 +60,7 @@ public static class MessageParser
             return new MsgMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
         
-        ErrorHandler.InternalError("Invalid MSG message format");
+        ErrorHandler.InformUser("Received unknown message");
         return null;
 
     }
@@ -76,7 +76,7 @@ public static class MessageParser
             return new ReplyMessage(isOk, string.Join(" ", messageParts[3..]));
         }
 
-        ErrorHandler.InternalError("Invalid REPLY message format");
+        ErrorHandler.InformUser("Invalid REPLY message format");
         return null;
     }
 
@@ -92,7 +92,7 @@ public static class MessageParser
             return new AuthMessage(messageParts[1], messageParts[3], messageParts[5]);
         }
         
-        ErrorHandler.InternalError("Invalid AUTH message format");
+        ErrorHandler.InformUser("Received unknown message");
         return null;
 
     }
@@ -107,7 +107,7 @@ public static class MessageParser
             return new JoinMessage(messageParts[1], messageParts[3]);
         }
         
-        ErrorHandler.InternalError("Invalid JOIN message format");
+        ErrorHandler.InformUser("Received unknown message");
         return null;
 
     }
@@ -116,7 +116,7 @@ public static class MessageParser
     {
         if (messageParts.Length != 1)
         {
-            ErrorHandler.InternalError("Invalid BYE message format");
+            ErrorHandler.InformUser("Received unknown message");
             return null;
         }
 

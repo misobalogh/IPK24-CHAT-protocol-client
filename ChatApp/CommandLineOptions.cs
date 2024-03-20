@@ -4,8 +4,8 @@ using System;
 
 public class CommandLineArguments
 {
-    public string? TransportProtocol { get; private set; }
-    public string? ServerAddress { get; private set; }
+    public string TransportProtocol { get; private set; } = "";
+    public string ServerAddress { get; private set; } = "";
     public ushort ServerPort { get; private set; } = 4567;
     public ushort UdpTimeout { get; private set; } = 250;
     public byte MaxRetransmissions { get; private set; } = 3;
@@ -30,27 +30,44 @@ public class CommandLineArguments
             switch (arg)
             {
                 case "-t":
+                    if (value != "tcp" && value != "udp")
+                    {
+                        ErrorHandler.ExitWith($"Unknown transport protocol: '{value}'", ExitCode.UnknownParam);
+                    }
                     TransportProtocol = value;
                     break;
                 case "-s":
                     ServerAddress = value;
                     break;
                 case "-p":
-                    ServerPort = ushort.Parse(value);
+                    if (!ushort.TryParse(value, out ushort port))
+                    {
+                        ErrorHandler.ExitWith($"Invalid port number: '{value}'", ExitCode.UnknownParam);
+                    }
+                    ServerPort = port;
                     break;
                 case "-d":
-                    UdpTimeout = ushort.Parse(value);
+                    if (!ushort.TryParse(value, out ushort timeout))
+                    {
+                        ErrorHandler.ExitWith($"Invalid UDP timeout value: '{value}'", ExitCode.UnknownParam);
+                    }
+                    UdpTimeout = timeout;
                     break;
                 case "-r":
-                    MaxRetransmissions = byte.Parse(value);
+                    if (!byte.TryParse(value, out byte retransmissions))
+                    {
+                        ErrorHandler.ExitWith($"Invalid max retransmissions value: '{value}'", ExitCode.UnknownParam);
+                    }
+                    MaxRetransmissions = retransmissions;
                     break;
                 default:
-                    ErrorHandler.ExitWith($"Unknown argument: {arg}. Try /help", ExitCode.UnknownParam);
+                    ErrorHandler.ExitWith($"Unknown argument: '{arg}'. Try /help", ExitCode.UnknownParam);
                     break;
             }
+
         }
 
-        if (TransportProtocol == null || ServerAddress == null)
+        if (TransportProtocol == "" || ServerAddress == "")
         {
             ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.UnknownParam);
         }

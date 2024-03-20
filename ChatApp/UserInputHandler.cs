@@ -30,12 +30,15 @@ namespace ChatApp
             {
                 string? input = Console.ReadLine();
 
-                if (string.IsNullOrWhiteSpace(input))
+                if (input == null)
+                {
+                    HandleBye();
+                }
+                else if (string.IsNullOrWhiteSpace(input))
                 {
                     continue;
                 }
-
-                if (input.StartsWith('/'))
+                else if (input!.StartsWith('/'))
                 {
                     ProcessLocalCommand(input);
                 }
@@ -51,7 +54,7 @@ namespace ChatApp
             ErrorHandler.ExitSuccess();
         }
 
-        private async Task EnqueueMessageAsync(Message message)
+       private async Task EnqueueMessageAsync(Message message)
         {
             await _messageSemaphore.WaitAsync();
 
@@ -102,13 +105,13 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
-                    string? reply = await _tcpClient.ReceiveMessageAsync();
-                    if (reply == null)
+                    string? receivedMessage = await _tcpClient.ReceiveMessageAsync();
+                    if (receivedMessage == null)
                     {
                         continue;
                     }
                     
-                    Message? message = MessageParser.ParseMessage(reply);
+                    Message? message = MessageParser.ParseMessage(receivedMessage);
                     _receivedMessageType = message?.Type ?? MessageType.None;
                     
                     if (_receivedMessageType == MessageType.Bye)
@@ -125,11 +128,17 @@ namespace ChatApp
                         ErrorHandler.ExitSuccess();
                     }
                     
-                    if (_receivedMessageType == MessageType.Reply)
+                    // ignore unexpected reply message
+                    if (_receivedMessageType is MessageType.Reply or MessageType.NotReply && !_waitingForReply)
+                    {
+                        continue;
+                    }
+                    
+                    if (_receivedMessageType is MessageType.Reply or MessageType.NotReply)
                     {
                         _waitingForReply = false;
                     }
-
+                    
                     _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
 
                     if (_clientState.GetCurrentState() == State.Error)
@@ -172,21 +181,27 @@ namespace ChatApp
             }
         }
 
-        private async void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
+        private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
         {
-            if (eventArgs.SpecialKey == ConsoleSpecialKey.ControlC)
+            if (eventArgs.SpecialKey is ConsoleSpecialKey.ControlC)
             {
                 eventArgs.Cancel = true;
-                Message message = new ByeMessage();
-                try
-                {
-                    await _tcpClient.SendMessageAsync(message.Craft());
-                    ErrorHandler.ExitSuccess();
-                }
-                catch (Exception ex)
-                {
-                    ErrorHandler.InternalError($"Error sending message on cancel: {ex.Message}");
-                }
+                HandleBye();
+                
+            }
+        }
+        
+        private async void HandleBye()
+        {
+            Message message = new ByeMessage();
+            try
+            {
+                await _tcpClient.SendMessageAsync(message.Craft());
+                ErrorHandler.ExitSuccess();
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.InternalError($"Error sending message on cancel: {ex.Message}");
             }
         }
 

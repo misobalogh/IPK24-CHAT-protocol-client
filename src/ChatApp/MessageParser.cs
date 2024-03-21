@@ -1,14 +1,16 @@
 using ChatApp.Messages;
+using ChatApp.Enums;
 
 namespace ChatApp;
 
 public static class MessageParser
 {
-    private static readonly Dictionary<string, Func<string[], Message?>> Parsers;
+    private static readonly Dictionary<string, Func<string[], Message?>> TcpParsers ;
+    private static readonly Dictionary<string, Func<byte[], Message?>> UdpParsers;
 
     static MessageParser()
     {
-        Parsers = new Dictionary<string, Func<string[], Message?>>
+        TcpParsers  = new Dictionary<string, Func<string[], Message?>>
         {
             { "ERR FROM", ParseErrMessage },
             { "MSG FROM", ParseMsgMessage },
@@ -18,11 +20,22 @@ public static class MessageParser
             { "BYE", ParseByeMessage },
             { "CONFIRM", ParseConfirmMessage }
         };
+        
+        // UdpParsers = new Dictionary<string, Func<byte[], Message?>>
+        // {
+        //     { "ERR FROM", ParseErrMessageUdp },
+        //     { "MSG FROM", ParseMsgMessageUdp },
+        //     { "REPLY", ParseReplyMessageUdp },
+        //     { "AUTH", ParseAuthMessageUdp },
+        //     { "JOIN", ParseJoinMessageUdp },
+        //     { "BYE", ParseByeMessageUdp },
+        //     { "CONFIRM", ParseConfirmMessageUdp }
+        // };
     }
 
-    public static Message? ParseMessage(string message)
+    public static Message? ParseMessage(string message, ProtocolVariant transportProtocol)
     {
-        foreach (var kvp in Parsers)
+        foreach (var kvp in TcpParsers)
         {
             if (message.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
             {

@@ -1,10 +1,12 @@
-namespace ChatApp;
-
 using System;
+using ChatApp.Enums;
+
+
+namespace ChatApp;
 
 public class CommandLineArguments
 {
-    public string TransportProtocol { get; private set; } = "";
+    public ProtocolVariant TransportProtocol { get; private set; } = ProtocolVariant.None;
     public string ServerAddress { get; private set; } = "";
     public ushort ServerPort { get; private set; } = 4567;
     public ushort UdpTimeout { get; private set; } = 250;
@@ -32,9 +34,10 @@ public class CommandLineArguments
                 case "-t":
                     if (value != "tcp" && value != "udp")
                     {
-                        ErrorHandler.ExitWith($"Unknown transport protocol: '{value}'", ExitCode.UnknownParam);
+                        ErrorHandler.ExitWith($"Unknown transport protocol: {value}", ExitCode.UnknownParam);
                     }
-                    TransportProtocol = value;
+
+                    TransportProtocol = value == "tcp" ? ProtocolVariant.Tcp : ProtocolVariant.Udp; 
                     break;
                 case "-s":
                     ServerAddress = value;
@@ -67,7 +70,7 @@ public class CommandLineArguments
 
         }
 
-        if (TransportProtocol == "" || ServerAddress == "")
+        if (TransportProtocol == ProtocolVariant.None || ServerAddress == "")
         {
             ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.UnknownParam);
         }

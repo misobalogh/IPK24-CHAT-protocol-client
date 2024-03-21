@@ -1,12 +1,13 @@
+using System.Text;
 using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class MsgMessage(string displayName, string messageContent) : Message
+public class MsgMessage(string displayName, string messageContent, ushort messageId = 0) : Message
 {
     public override MessageType Type => MessageType.Msg;
 
-    public override string? Craft()
+    public override string? CraftTcp()
     {
         if (MessageGrammar.IsDname(displayName)
             && MessageGrammar.IsContent(messageContent))
@@ -17,11 +18,26 @@ public class MsgMessage(string displayName, string messageContent) : Message
         ErrorHandler.InternalError("Invalid format of MSG message");
         return null;
     }
-
-    public override void CheckReceivedMessage(Message message)
+    
+    public override byte[]? CraftUdp()
     {
-        throw new NotImplementedException();
+        if (!MessageGrammar.IsDname(displayName) || !MessageGrammar.IsContent(messageContent))
+        {
+            ErrorHandler.InternalError("Invalid format of MSG message");
+            return null;
+        }
+
+        byte[] messageTypeBytes = [(byte)MessageTypeByte.Msg];
+        byte[] messageIdBytes = GetMessageId(messageId);
+        byte[] displayNameBytes = Encoding.ASCII.GetBytes(displayName);
+        byte[] messageContentBytes = Encoding.ASCII.GetBytes(messageContent);
+
+        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes, displayNameBytes, NullTerminator, messageContentBytes, NullTerminator);
+
+        return messageBytes;
     }
+
+
 
     public override void PrintOutput()
     {

@@ -1,4 +1,7 @@
-﻿namespace ChatApp; 
+﻿using System.Text;
+using ChatApp.Messages;
+
+namespace ChatApp; 
 
 internal static class Program
 {
@@ -15,6 +18,7 @@ internal static class Program
             );
         
         userInputHandler.ProcessInput().Wait();
+
     }
 }
 

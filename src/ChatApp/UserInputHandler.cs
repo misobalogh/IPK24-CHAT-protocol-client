@@ -5,7 +5,7 @@ using ChatApp.Messages;
 
 namespace ChatApp
 {
-    public class UserInputHandler(string transportProtocol, string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
+    public class UserInputHandler(ProtocolVariant transportProtocol, string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
     {
         private bool _exit;
         private string _displayName = "";
@@ -38,7 +38,7 @@ namespace ChatApp
                 {
                     continue;
                 }
-                else if (input!.StartsWith('/'))
+                else if (input.StartsWith('/'))
                 {
                     ProcessLocalCommand(input);
                 }
@@ -54,7 +54,7 @@ namespace ChatApp
             ErrorHandler.ExitSuccess();
         }
 
-       private async Task EnqueueMessageAsync(Message message)
+       private async Task EnqueueMessageAsync(Message message)  
         {
             await _messageSemaphore.WaitAsync();
 
@@ -91,7 +91,7 @@ namespace ChatApp
                     _waitingForReply = true;
                 }
 
-                string? messageContent = messageToProcess.Craft();
+                string? messageContent = messageToProcess.CraftTcp();
                 if (messageContent != null)
                 {
                     await _tcpClient.SendMessageAsync(messageContent);
@@ -115,7 +115,7 @@ namespace ChatApp
                         continue;
                     }
                     
-                    Message? message = MessageParser.ParseMessage(receivedMessage);
+                    Message? message = MessageParser.ParseMessage(receivedMessage, transportProtocol);
                     _receivedMessageType = message?.Type ?? MessageType.None;
                     
                     if (_receivedMessageType == MessageType.Bye)
@@ -146,10 +146,10 @@ namespace ChatApp
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
-                        await _tcpClient.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").Craft());
+                        await _tcpClient.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").CraftTcp());
                         message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                        await _tcpClient.SendMessageAsync(new ByeMessage().Craft());
+                        await _tcpClient.SendMessageAsync(new ByeMessage().CraftTcp());
                         ErrorHandler.ExitSuccess();
                     }
                     
@@ -165,9 +165,9 @@ namespace ChatApp
                             while (_messageQueue.Count > 0 && !_waitingForReply)
                             {
                                 var messageToSent = _messageQueue.Dequeue();
-                                if (messageToSent.Craft() != null)
+                                if (messageToSent.CraftTcp() != null)
                                 {
-                                    await _tcpClient.SendMessageAsync(messageToSent.Craft());
+                                    await _tcpClient.SendMessageAsync(messageToSent.CraftTcp());
                                 }
                                 
                                 // if message that need reply is in the queue, break the cycle and wait for reply from server
@@ -205,7 +205,7 @@ namespace ChatApp
             Message message = new ByeMessage();
             try
             {
-                await _tcpClient.SendMessageAsync(message.Craft());
+                await _tcpClient.SendMessageAsync(message.CraftTcp());
                 ErrorHandler.ExitSuccess();
             }
             catch (Exception ex)

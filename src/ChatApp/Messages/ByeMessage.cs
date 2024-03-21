@@ -2,18 +2,24 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class ByeMessage : Message
+public class ByeMessage(ushort messageId = 0) : Message
 {
     public override MessageType Type => MessageType.Bye;
-    public override string? Craft()
+    public override string? CraftTcp()
     {
         return "BYE\r\n";
     }
-
-    public override void CheckReceivedMessage(Message message)
+    
+    public override byte[]? CraftUdp()
     {
-        throw new NotImplementedException();
+        byte[] messageTypeBytes = [(byte)MessageTypeByte.Bye];
+        byte[] messageIdBytes = GetMessageId(messageId);
+
+        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes);
+
+        return messageBytes;
     }
+
     
     public override void PrintOutput()
     {

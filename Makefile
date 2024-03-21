@@ -32,6 +32,9 @@ restore:
 	dotnet nuget locals all --clear
 	dotnet restore --verbosity diagnostic
 
+clear:
+	dotnet nuget locals all --clear
+
 clean:
 	rm -rf $(APP_NAME)
 	rm -rf $(SRC_DIR)/$(BIN)

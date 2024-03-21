@@ -32,7 +32,7 @@ namespace ChatApp
 
                 if (input == null)
                 {
-                    HandleBye();
+                    SendBye();
                 }
                 else if (string.IsNullOrWhiteSpace(input))
                 {
@@ -60,6 +60,12 @@ namespace ChatApp
 
             try
             {
+                if (message.Type is MessageType.Join or MessageType.Auth && _waitingForReply)
+                {
+                    ErrorHandler.InternalError($"Wait for previous {message.Type} action to be processed");
+                    return;
+                }
+                
                 _messageQueue.Enqueue(message);
                 
                 if (_waitingForReply)
@@ -68,22 +74,28 @@ namespace ChatApp
                 }
 
                 var messageToProcess = _messageQueue.Dequeue();
-                if (messageToProcess.Type is MessageType.Auth or MessageType.Join)
-                {
-                    _waitingForReply = true;
-                }
+                
                 
                 bool isValidMessageType = messageToProcess.Type == _possibleClientMessageType ||
                                           (_possibleClientMessageType == MessageType.MsgOrJoin &&
                                            messageToProcess.Type is MessageType.Msg or MessageType.Join);
                 
-                if (!isValidMessageType && !_waitingForReply)
+                if (!isValidMessageType)
                 {
                     ErrorHandler.InternalError($"Cannot send message of type {messageToProcess.Type} in the current client state");
                     return;
                 }
                 
-                await SendMessageAsync(messageToProcess.Craft());
+                if (messageToProcess.Type is MessageType.Auth or MessageType.Join)
+                {
+                    _waitingForReply = true;
+                }
+
+                string? messageContent = messageToProcess.Craft();
+                if (messageContent != null)
+                {
+                    await _tcpClient.SendMessageAsync(messageContent);
+                }
             }
             finally
             {
@@ -91,15 +103,7 @@ namespace ChatApp
             }
         }
 
-        private async Task SendMessageAsync(string? messageContent)
-        {
-            if (messageContent != null)
-            {
-                await _tcpClient.SendMessageAsync(messageContent);
-            }
-        }
-
-        private async Task ReceiveMessagesAsync()
+       private async Task ReceiveMessagesAsync()
         {
             try
             {
@@ -123,9 +127,7 @@ namespace ChatApp
 
                     if (_receivedMessageType == MessageType.Err)
                     {
-                        await _tcpClient.SendMessageAsync(new ByeMessage().Craft());
-                        _tcpClient.Close();
-                        ErrorHandler.ExitSuccess();
+                        SendBye();
                     }
                     
                     // ignore unexpected reply message
@@ -140,7 +142,8 @@ namespace ChatApp
                     }
                     
                     _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-
+                    Console.WriteLine($"State: {_clientState.GetCurrentState()}, possible user input: {_possibleClientMessageType}");
+                    
                     if (_clientState.GetCurrentState() == State.Error)
                     {
                         await _tcpClient.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").Craft());
@@ -158,10 +161,16 @@ namespace ChatApp
                     {
                         if (!_waitingForReply)
                         {
+                            // send all messages that were stopped until reply for join or auth were received
                             while (_messageQueue.Count > 0 && !_waitingForReply)
                             {
                                 var messageToSent = _messageQueue.Dequeue();
-                                await SendMessageAsync(messageToSent.Craft());
+                                if (messageToSent.Craft() != null)
+                                {
+                                    await _tcpClient.SendMessageAsync(messageToSent.Craft());
+                                }
+                                
+                                // if message that need reply is in the queue, break the cycle and wait for reply from server
                                 if (messageToSent.Type is MessageType.Auth or MessageType.Join)
                                 {
                                     _waitingForReply = true;
@@ -186,12 +195,12 @@ namespace ChatApp
             if (eventArgs.SpecialKey is ConsoleSpecialKey.ControlC)
             {
                 eventArgs.Cancel = true;
-                HandleBye();
+                SendBye();
                 
             }
         }
         
-        private async void HandleBye()
+        private async void SendBye()
         {
             Message message = new ByeMessage();
             try
@@ -201,7 +210,7 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                ErrorHandler.InternalError($"Error sending message on cancel: {ex.Message}");
+                ErrorHandler.InternalError($"Error sending message bye: {ex.Message}");
             }
         }
 

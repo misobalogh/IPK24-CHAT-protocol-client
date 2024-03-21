@@ -1,4 +1,0 @@
-/auth user1 1234 jupik
-REPLY OK IS Auth success.
-hello everybody
-REPLY OK IS successfuly sent message

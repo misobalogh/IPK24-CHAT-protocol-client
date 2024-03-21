@@ -13,6 +13,7 @@ internal static class Program
             cmdArgs.UdpTimeout,
             cmdArgs.MaxRetransmissions
             );
+        
         userInputHandler.ProcessInput().Wait();
     }
 }

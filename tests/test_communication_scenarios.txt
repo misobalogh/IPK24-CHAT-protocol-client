@@ -4,6 +4,8 @@
 |  VUT FIT                                                                                                              |
 |  21.3.2024                                                                                                            |
 |                                                                                                                       |
+|  This file contains test scenarios for validating correct client - server communication using netcat                  |
+|                                                                                                                       |
 |_______________________________________________________________________________________________________________________|
 |   Test Case 1  - Clients auth, send message, receives message                                                         |
 |_______________________________________________________________________________________________________________________|

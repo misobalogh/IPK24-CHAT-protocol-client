@@ -115,7 +115,7 @@ namespace ChatApp
                         continue;
                     }
                     
-                    Message? message = MessageParser.ParseMessage(receivedMessage, transportProtocol);
+                    Message? message = MessageParser.ParseMessage(receivedMessage);
                     _receivedMessageType = message?.Type ?? MessageType.None;
                     
                     if (_receivedMessageType == MessageType.Bye)

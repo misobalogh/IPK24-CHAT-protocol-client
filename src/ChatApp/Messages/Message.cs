@@ -6,8 +6,10 @@ namespace ChatApp.Messages;
 public abstract class Message(ushort messageId = 0)
 {
     public abstract MessageType Type { get; }
+    public ushort MessageId { get; } = messageId;
+
     protected readonly byte[] NullTerminator = [0];
-    
+
     // creates message for TCP protocol in correct format
     public abstract string? CraftTcp();
     
@@ -42,7 +44,7 @@ public abstract class Message(ushort messageId = 0)
 
     protected static byte[] GetMessageId(int messageId)
     {
-        byte[] messageIdBytes = new byte[2];
+        var messageIdBytes = new byte[2];
         messageIdBytes[0] = (byte)(messageId >> 8);
         messageIdBytes[1] = (byte)messageId;
         return messageIdBytes;

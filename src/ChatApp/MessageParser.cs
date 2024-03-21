@@ -5,12 +5,12 @@ namespace ChatApp;
 
 public static class MessageParser
 {
-    private static readonly Dictionary<string, Func<string[], Message?>> TcpParsers ;
-    private static readonly Dictionary<string, Func<byte[], Message?>> UdpParsers;
+    private static readonly Dictionary<string, Func<string[], Message?>> TcpParsers;
+    private static readonly Dictionary<MessageTypeByte, Func<byte[], Message?>> UdpParsers;
 
     static MessageParser()
     {
-        TcpParsers  = new Dictionary<string, Func<string[], Message?>>
+        TcpParsers = new Dictionary<string, Func<string[], Message?>>
         {
             { "ERR FROM", ParseErrMessage },
             { "MSG FROM", ParseMsgMessage },
@@ -20,26 +20,27 @@ public static class MessageParser
             { "BYE", ParseByeMessage },
             { "CONFIRM", ParseConfirmMessage }
         };
-        
-        // UdpParsers = new Dictionary<string, Func<byte[], Message?>>
-        // {
-        //     { "ERR FROM", ParseErrMessageUdp },
-        //     { "MSG FROM", ParseMsgMessageUdp },
-        //     { "REPLY", ParseReplyMessageUdp },
-        //     { "AUTH", ParseAuthMessageUdp },
-        //     { "JOIN", ParseJoinMessageUdp },
-        //     { "BYE", ParseByeMessageUdp },
-        //     { "CONFIRM", ParseConfirmMessageUdp }
-        // };
+
+        UdpParsers = new Dictionary<MessageTypeByte, Func<byte[], Message?>>
+        {
+            { MessageTypeByte.Err, ParseErrMessage },
+            { MessageTypeByte.Msg, ParseMsgMessage },
+            { MessageTypeByte.Reply, ParseReplyMessage },
+            { MessageTypeByte.Auth, ParseReplyMessage },
+            { MessageTypeByte.Join, ParseJoinMessage },
+            { MessageTypeByte.Bye, ParseByeMessage },
+            { MessageTypeByte.Confirm, ParseConfirmMessage }
+        };
     }
 
-    public static Message? ParseMessage(string message, ProtocolVariant transportProtocol)
+    // method for tcp variant, works with strings
+    public static Message? ParseMessage(string message)
     {
         foreach (var kvp in TcpParsers)
         {
             if (message.StartsWith(kvp.Key, StringComparison.OrdinalIgnoreCase))
             {
-                string[] messageElements = message.Split(' ');
+                var messageElements = message.Split(' ');
                 return kvp.Value(messageElements);
             }
         }
@@ -48,6 +49,30 @@ public static class MessageParser
         return null;
     }
 
+    // overloaded method for udp, works with array of bytes
+    public static Message? ParseMessage(byte[] message)
+    {
+        if (message.Length != 0)
+        {
+            foreach (var kvp in UdpParsers)
+            {
+                if (message[0] == (byte)kvp.Key)
+                {
+                    return kvp.Value(message);
+                }
+            }
+        }
+
+        ErrorHandler.InformUser("Received unknown message");
+        return null;
+    }
+    
+    
+    private static Message? ParseErrMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
+    }
+    
     private static Message? ParseErrMessage(string[] messageParts)
     {
         if (messageParts.Length >= 5 
@@ -60,22 +85,30 @@ public static class MessageParser
         
         ErrorHandler.InformUser("Received unknown message");
         return null;
+    }
 
+    private static Message? ParseMsgMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
     }
 
     private static Message? ParseMsgMessage(string[] messageParts)
     {
-        if (messageParts.Length >= 5 
+        if (messageParts.Length >= 5
             && MessageGrammar.IsDname(messageParts[2])
             && MessageGrammar.IsComponentIS(messageParts[3])
             && MessageGrammar.IsContent(messageParts[4]))
         {
             return new MsgMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
-        
+
         ErrorHandler.InformUser("Received unknown message");
         return null;
-
+    }
+    
+    private static Message? ParseReplyMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
     }
 
     private static Message? ParseReplyMessage(string[] messageParts)
@@ -91,6 +124,11 @@ public static class MessageParser
 
         ErrorHandler.InformUser("Invalid REPLY message format");
         return null;
+    }
+    
+    private static Message? ParseAuthMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
     }
 
     private static Message? ParseAuthMessage(string[] messageParts)
@@ -109,6 +147,11 @@ public static class MessageParser
         return null;
 
     }
+    
+    private static Message? ParseJoinMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
+    }
 
     private static Message? ParseJoinMessage(string[] messageParts)
     {
@@ -124,6 +167,18 @@ public static class MessageParser
         return null;
 
     }
+    
+    private static Message? ParseByeMessage(byte[] messageParts)
+    {
+        if (messageParts.Length != 3)
+        {
+            ErrorHandler.InformUser("Received invalid BYE message");
+            return null;
+        }
+
+        ushort messageId = GetMessageIdFromBytes(messageParts);
+        return new ByeMessage(messageId);
+    }
 
     private static Message? ParseByeMessage(string[] messageParts)
     {
@@ -135,10 +190,25 @@ public static class MessageParser
 
         return new ByeMessage();
     }
+    
+    private static Message? ParseConfirmMessage(byte[] messageParts)
+    {
+        throw new NotImplementedException();
+    }
 
     private static Message? ParseConfirmMessage(string[] messageParts)
     {
         return null;
+    }
+    
+    
+    private static ushort GetMessageIdFromBytes(byte[] messageIdBytes)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            Array.Reverse(messageIdBytes);
+        }
+        return BitConverter.ToUInt16(messageIdBytes, 0);
     }
 }
     

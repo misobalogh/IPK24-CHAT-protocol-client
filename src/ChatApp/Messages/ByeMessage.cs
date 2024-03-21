@@ -2,7 +2,7 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class ByeMessage(ushort messageId = 0) : Message
+public class ByeMessage(ushort messageId = 0) : Message(messageId)
 {
     public override MessageType Type => MessageType.Bye;
     public override string? CraftTcp()
@@ -13,11 +13,9 @@ public class ByeMessage(ushort messageId = 0) : Message
     public override byte[]? CraftUdp()
     {
         byte[] messageTypeBytes = [(byte)MessageTypeByte.Bye];
-        byte[] messageIdBytes = GetMessageId(messageId);
+        byte[] messageIdBytes = GetMessageId(MessageId);
 
-        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes);
-
-        return messageBytes;
+        return ByteMessageConcat(messageTypeBytes, messageIdBytes);
     }
 
     

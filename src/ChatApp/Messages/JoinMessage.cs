@@ -3,7 +3,7 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class JoinMessage(string channelId, string displayName, ushort messageId = 0) : Message
+public class JoinMessage(string channelId, string displayName, ushort messageId = 0) : Message(messageId)
 {
     public override MessageType Type => MessageType.Join;
     public override string? CraftTcp()
@@ -27,14 +27,12 @@ public class JoinMessage(string channelId, string displayName, ushort messageId 
             return null;
         }
 
-        byte[] messageTypeBytes = new byte[] { (byte)MessageTypeByte.Join };
-        byte[] messageIdBytes = GetMessageId(messageId);
-        byte[] channelIdBytes = Encoding.ASCII.GetBytes(channelId);
-        byte[] displayNameBytes = Encoding.ASCII.GetBytes(displayName);
+        byte[] messageTypeBytes = [(byte)MessageTypeByte.Join];
+        byte[] messageIdBytes = GetMessageId(MessageId);
+        byte[] channelIdBytes = GetBytesFromString(channelId);
+        byte[] displayNameBytes = GetBytesFromString(displayName);
 
-        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes, channelIdBytes, NullTerminator, displayNameBytes, NullTerminator);
-
-        return messageBytes;
+        return ByteMessageConcat(messageTypeBytes, messageIdBytes, channelIdBytes, NullTerminator, displayNameBytes, NullTerminator);
     }
 
     

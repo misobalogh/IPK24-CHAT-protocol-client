@@ -1,3 +1,4 @@
+using System.Text;
 using ChatApp.Messages;
 using ChatApp.Enums;
 
@@ -26,7 +27,7 @@ public static class MessageParser
             { MessageTypeByte.Err, ParseErrMessage },
             { MessageTypeByte.Msg, ParseMsgMessage },
             { MessageTypeByte.Reply, ParseReplyMessage },
-            { MessageTypeByte.Auth, ParseReplyMessage },
+            { MessageTypeByte.Auth, ParseAuthMessage },
             { MessageTypeByte.Join, ParseJoinMessage },
             { MessageTypeByte.Bye, ParseByeMessage },
             { MessageTypeByte.Confirm, ParseConfirmMessage }
@@ -58,6 +59,7 @@ public static class MessageParser
             {
                 if (message[0] == (byte)kvp.Key)
                 {
+
                     return kvp.Value(message);
                 }
             }
@@ -70,7 +72,26 @@ public static class MessageParser
     
     private static Message? ParseErrMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        
+        if (messageParts.Length < 7 || messageParts[^1] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid ERR message");
+            return null;
+        }
+
+        int displayNameEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
+
+        if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid ERR message");
+            return null;
+        }
+
+        ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
+        string displayName = GetStringFromBytes(messageParts, 3, out displayNameEndIndex);
+        string messageContents = GetStringFromBytes(messageParts, displayNameEndIndex + 1, out _);
+
+        return new ErrMessage(displayName, messageContents, messageId);
     }
     
     private static Message? ParseErrMessage(string[] messageParts)
@@ -89,7 +110,25 @@ public static class MessageParser
 
     private static Message? ParseMsgMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        if (messageParts.Length < 7 || messageParts[^1] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid MSG message");
+            return null;
+        }
+
+        int displayNameEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
+
+        if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid MSG message");
+            return null;
+        }
+
+        ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
+        string displayName = GetStringFromBytes(messageParts, 3, out displayNameEndIndex);
+        string messageContents = GetStringFromBytes(messageParts, displayNameEndIndex + 1, out _);
+
+        return new MsgMessage(displayName, messageContents, messageId);
     }
 
     private static Message? ParseMsgMessage(string[] messageParts)
@@ -108,8 +147,23 @@ public static class MessageParser
     
     private static Message? ParseReplyMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        if (messageParts.Length < 8 || messageParts[^1] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid REPLY message");
+            return null;
+        }
+
+        ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
+        bool result = messageParts[3] == 1;
+        ushort refMessageId = GetMessageIdFromBytes(messageParts[4..6]);
+    
+        int messageContentsStartIndex = 6;
+
+        string messageContents = GetStringFromBytes(messageParts, messageContentsStartIndex, out _);
+
+        return new ReplyMessage(result, messageContents, refMessageId, messageId);
     }
+
 
     private static Message? ParseReplyMessage(string[] messageParts)
     {
@@ -128,8 +182,35 @@ public static class MessageParser
     
     private static Message? ParseAuthMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        if (messageParts.Length < 9 || messageParts[^1] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid AUTH message");
+            return null;
+        }
+
+        int usernameEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
+        if (usernameEndIndex == -1 || usernameEndIndex == messageParts.Length - 1 || messageParts[usernameEndIndex] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid AUTH message");
+            return null;
+        }
+
+        int displayNameStartIndex = usernameEndIndex + 1;
+        int displayNameEndIndex = Array.IndexOf(messageParts, (byte)0, displayNameStartIndex);
+        if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid AUTH message");
+            return null;
+        }
+
+        ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
+        string username = GetStringFromBytes(messageParts, 3, out usernameEndIndex);
+        string displayName = GetStringFromBytes(messageParts, displayNameStartIndex, out displayNameEndIndex);
+        string secret = GetStringFromBytes(messageParts, displayNameEndIndex + 1, out _);
+
+        return new AuthMessage(username, displayName, secret, messageId);
     }
+
 
     private static Message? ParseAuthMessage(string[] messageParts)
     {
@@ -150,8 +231,28 @@ public static class MessageParser
     
     private static Message? ParseJoinMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        if (messageParts.Length < 7 || messageParts[^1] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid JOIN message");
+            return null;
+        }
+
+        int channelIdEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
+        if (channelIdEndIndex == -1 || channelIdEndIndex == messageParts.Length - 1 || messageParts[channelIdEndIndex] != 0)
+        {
+            ErrorHandler.InformUser("Received invalid JOIN message");
+            return null;
+        }
+        
+        int displayNameStartIndex = channelIdEndIndex + 1;
+
+        ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
+        string channelId = GetStringFromBytes(messageParts, 3, out channelIdEndIndex);
+        string displayName = GetStringFromBytes(messageParts, displayNameStartIndex, out _);
+
+        return new JoinMessage(channelId, displayName, messageId);
     }
+
 
     private static Message? ParseJoinMessage(string[] messageParts)
     {
@@ -176,7 +277,8 @@ public static class MessageParser
             return null;
         }
 
-        ushort messageId = GetMessageIdFromBytes(messageParts);
+        var messageIdBytes = messageParts[1..];
+        ushort messageId = GetMessageIdFromBytes(messageIdBytes);
         return new ByeMessage(messageId);
     }
 
@@ -184,7 +286,7 @@ public static class MessageParser
     {
         if (messageParts.Length != 1)
         {
-            ErrorHandler.InformUser("Received unknown message");
+            ErrorHandler.InformUser("Receive invalid BYE message");
             return null;
         }
 
@@ -193,7 +295,15 @@ public static class MessageParser
     
     private static Message? ParseConfirmMessage(byte[] messageParts)
     {
-        throw new NotImplementedException();
+        if (messageParts.Length != 3)
+        {
+            ErrorHandler.InformUser("Received invalid CONFIRM message");
+            return null;
+        }
+
+        var messageIdBytes = messageParts[1..];
+        ushort messageId = GetMessageIdFromBytes(messageIdBytes);
+        return new ConfirmMessage(messageId);
     }
 
     private static Message? ParseConfirmMessage(string[] messageParts)
@@ -209,6 +319,16 @@ public static class MessageParser
             Array.Reverse(messageIdBytes);
         }
         return BitConverter.ToUInt16(messageIdBytes, 0);
+    }
+
+    private static string GetStringFromBytes(byte[] bytes, int startIndex, out int endIndex)
+    {
+        endIndex = Array.IndexOf(bytes, (byte)0, startIndex);
+        if (endIndex == -1)
+        {
+            endIndex = bytes.Length - 1;
+        }
+        return Encoding.ASCII.GetString(bytes[startIndex..endIndex]);
     }
 }
     

@@ -3,7 +3,7 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class ErrMessage(string displayName, string messageContent, ushort messageId = 0) : Message
+public class ErrMessage(string displayName, string messageContent, ushort messageId = 0) : Message(messageId)
 {
     public override MessageType Type => MessageType.Err;
     public override string? CraftTcp()
@@ -27,13 +27,11 @@ public class ErrMessage(string displayName, string messageContent, ushort messag
         }
 
         byte[] messageTypeBytes = [(byte)MessageTypeByte.Err];
-        byte[] messageIdBytes = GetMessageId(messageId);
-        byte[] displayNameBytes = Encoding.ASCII.GetBytes(displayName);
-        byte[] messageContentBytes = Encoding.ASCII.GetBytes(messageContent);
+        byte[] messageIdBytes = GetMessageId(MessageId);
+        byte[] displayNameBytes = GetBytesFromString(displayName);
+        byte[] messageContentBytes = GetBytesFromString(messageContent);
 
-        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes, displayNameBytes, NullTerminator, messageContentBytes, NullTerminator);
-
-        return messageBytes;
+        return ByteMessageConcat(messageTypeBytes, messageIdBytes, displayNameBytes, NullTerminator, messageContentBytes, NullTerminator);
     }
 
 

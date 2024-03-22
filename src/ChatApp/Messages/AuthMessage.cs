@@ -3,7 +3,7 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class AuthMessage(string username, string displayName, string secret, ushort messageId = 0) : Message
+public class AuthMessage(string username, string displayName, string secret, ushort messageId = 0) : Message(messageId)
 {
     public override MessageType Type => MessageType.Auth;
 
@@ -34,11 +34,9 @@ public class AuthMessage(string username, string displayName, string secret, ush
         byte[] usernameBytes = GetBytesFromString(username);
         byte[] displayNameBytes = GetBytesFromString(displayName);
         byte[] secretBytes = GetBytesFromString(secret);
-        byte[] messageIdBytes = GetMessageId(messageId);
+        byte[] messageIdBytes = GetMessageId(MessageId);
 
-        byte[] messageBytes = ByteMessageConcat(authMessageTypeBytes, messageIdBytes, usernameBytes, NullTerminator, displayNameBytes, NullTerminator, secretBytes, NullTerminator);
-
-        return messageBytes;
+        return ByteMessageConcat(authMessageTypeBytes, messageIdBytes, usernameBytes, NullTerminator, displayNameBytes, NullTerminator, secretBytes, NullTerminator);
     }
 
     

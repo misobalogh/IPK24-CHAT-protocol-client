@@ -3,7 +3,7 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
-public class ReplyMessage(bool isOk, string messageContent, ushort messageId = 0, ushort refMessageId = 0) : Message
+public class ReplyMessage(bool isOk, string messageContent, ushort messageId = 0, ushort refMessageId = 0) : Message(messageId)
 {
     public override MessageType Type => isOk ? MessageType.Reply : MessageType.NotReply;
     public override string? CraftTcp()
@@ -29,13 +29,11 @@ public class ReplyMessage(bool isOk, string messageContent, ushort messageId = 0
 
         byte[] messageContentBytes = GetBytesFromString(messageContent);
         byte[] messageTypeBytes = [(byte)MessageTypeByte.Reply];
-        byte[] messageIdBytes = GetMessageId(messageId);
+        byte[] messageIdBytes = GetMessageId(MessageId);
         byte[] isOkByte = [isOk ? (byte)1 : (byte)0];
         byte[] refMessageIdBytes = GetMessageId(refMessageId);
 
-        byte[] messageBytes = ByteMessageConcat(messageTypeBytes, messageIdBytes, isOkByte, refMessageIdBytes, messageContentBytes, NullTerminator);
-
-        return messageBytes;
+        return ByteMessageConcat(messageTypeBytes, messageIdBytes, isOkByte, refMessageIdBytes, messageContentBytes, NullTerminator);
     }
 
 

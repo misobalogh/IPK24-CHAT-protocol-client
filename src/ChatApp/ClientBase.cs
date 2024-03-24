@@ -7,7 +7,7 @@ public abstract class ClientBase
     protected NetworkStream Stream = null!;
     protected StreamWriter Writer = null!;
     protected StreamReader Reader = null!;
-    public abstract Task<string?> ReceiveMessageAsync();
+    public abstract Task<object?> ReceiveMessageAsync();
     public abstract Task SendMessageAsync(object? message); 
     public void Close()
     {

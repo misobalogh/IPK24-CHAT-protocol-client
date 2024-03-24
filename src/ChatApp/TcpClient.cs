@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 namespace ChatApp;
 public class TcpClient : ClientBase
 {
-   
     private bool _connectionTerminated;
 
     public TcpClient(string serverAddress, int serverPort)
@@ -36,7 +35,7 @@ public class TcpClient : ClientBase
             Writer = new StreamWriter(Stream, Encoding.ASCII);
             Reader = new StreamReader(Stream, Encoding.ASCII);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             Close();
             ErrorHandler.ExitWith($"Error occurred when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
@@ -69,7 +68,7 @@ public class TcpClient : ClientBase
         }
     }
 
-    public override async Task<string?> ReceiveMessageAsync()
+    public override async Task<object?> ReceiveMessageAsync()
     {
         try
         {

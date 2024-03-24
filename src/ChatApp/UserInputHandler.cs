@@ -10,6 +10,7 @@ namespace ChatApp
     {
         private bool _exit;
         private string _displayName = "";
+        private ushort _messageId = 0;
 
         private readonly ClientBase _client = transportProtocol == ProtocolVariant.Tcp
             ? new TcpClient(serverAddress, serverPort)
@@ -51,7 +52,7 @@ namespace ChatApp
                 }
                 else
                 {
-                   Message message = new MsgMessage(_displayName, input);
+                   Message message = new MsgMessage(_displayName, input, _messageId++);
                    await EnqueueMessageAsync(message);
                 }
             }
@@ -82,11 +83,9 @@ namespace ChatApp
 
                 var messageToProcess = _messageQueue.Dequeue();
                 
-                
                 bool isValidMessageType = messageToProcess.Type == _possibleClientMessageType ||
                                           (_possibleClientMessageType == MessageType.MsgOrJoin &&
                                            messageToProcess.Type is MessageType.Msg or MessageType.Join);
-                
                 if (!isValidMessageType)
                 {
                     ErrorHandler.InternalError($"Cannot send message of type {messageToProcess.Type} in the current client state");
@@ -116,13 +115,28 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
-                    string? receivedMessage = await _client.ReceiveMessageAsync();
+                    object? receivedMessage = await _client.ReceiveMessageAsync();
                     if (receivedMessage == null)
                     {
                         continue;
                     }
                     
-                    Message? message = MessageParser.ParseMessage(receivedMessage);
+                    Message? message;
+
+                    if (transportProtocol == ProtocolVariant.Tcp && receivedMessage is string stringMessage)
+                    {
+                        message = MessageParser.ParseMessage(stringMessage);
+                    }
+                    else if (transportProtocol == ProtocolVariant.Udp && receivedMessage is byte[] bytesMessage)
+                    {
+                        message = MessageParser.ParseMessage(bytesMessage);
+                    }
+                    else
+                    {
+                        message = null;
+                        ErrorHandler.InformUser("Received message of wrong type ");
+                    }
+                    
                     _receivedMessageType = message?.Type ?? MessageType.None;
                     
                     if (_receivedMessageType == MessageType.Bye)
@@ -155,11 +169,11 @@ namespace ChatApp
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
-                        await _client.SendMessageAsync(_messageCrafter.Craft(new ErrMessage(_displayName,"Error occured while receiving message from server")));
+                        await _client.SendMessageAsync(_messageCrafter.Craft(new ErrMessage(_displayName,"Error occured while receiving message from server", _messageId++)));
                         message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
                         
-                        await _client.SendMessageAsync(_messageCrafter.Craft(new ByeMessage()));
+                        await _client.SendMessageAsync(_messageCrafter.Craft(new ByeMessage(_messageId++)));
                         
                         ErrorHandler.ExitSuccess();
                     }
@@ -213,7 +227,7 @@ namespace ChatApp
         
         private async void SendBye()
         {
-            Message message = new ByeMessage();
+            Message message = new ByeMessage(_messageId++);
             try
             {
                 await _client.SendMessageAsync(_messageCrafter.Craft(message));
@@ -271,7 +285,7 @@ namespace ChatApp
             string secret = parametersSplit[1];
             _displayName = parametersSplit[2];
 
-            Message message = new AuthMessage(username, _displayName, secret);
+            Message message = new AuthMessage(username, _displayName, secret, _messageId++);
             await EnqueueMessageAsync(message);
         }
 
@@ -292,7 +306,7 @@ namespace ChatApp
             }
 
             string channelId = parametersSplit[0];
-            Message message = new JoinMessage(channelId, _displayName);
+            Message message = new JoinMessage(channelId, _displayName, _messageId++);
             await EnqueueMessageAsync(message);
         }
 

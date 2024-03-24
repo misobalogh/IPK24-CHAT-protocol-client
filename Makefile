@@ -16,6 +16,12 @@ build:
 run: build
 	./$(APP_NAME) -t tcp -s 127.0.0.1 -p 4567
 
+tcp: build
+	./$(APP_NAME) -t tcp -s 127.0.0.1 -p 4567
+
+udp: build
+	./$(APP_NAME) -t udp -s 127.0.0.1 -p 4567
+
 discord: build
 	./$(APP_NAME) -t tcp -s anton5.fit.vutbr.cz -p 4567
 

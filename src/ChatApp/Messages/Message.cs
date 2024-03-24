@@ -9,7 +9,7 @@ public abstract class Message(ushort messageId = 0)
     public ushort MessageId { get; } = messageId;
 
     protected readonly byte[] NullTerminator = [0];
-
+    
     // creates message for TCP protocol in correct format
     public abstract string? CraftTcp();
     

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using ChatApp.Enums;
 using ChatApp.Messages;
 
 namespace ChatApp; 

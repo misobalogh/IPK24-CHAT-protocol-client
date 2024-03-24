@@ -6,7 +6,7 @@ namespace ChatApp;
 
 public class CommandLineArguments
 {
-    public ProtocolVariant TransportProtocol { get; private set; } = ProtocolVariant.None;
+    public ProtocolVariant TransportProtocol { get; private set; }
     public string ServerAddress { get; private set; } = "";
     public ushort ServerPort { get; private set; } = 4567;
     public ushort UdpTimeout { get; private set; } = 250;
@@ -70,7 +70,7 @@ public class CommandLineArguments
 
         }
 
-        if (TransportProtocol == ProtocolVariant.None || ServerAddress == "")
+        if ((TransportProtocol != ProtocolVariant.Tcp && TransportProtocol != ProtocolVariant.Udp) || ServerAddress == "")
         {
             ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.UnknownParam);
         }

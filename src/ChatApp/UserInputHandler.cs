@@ -14,6 +14,8 @@ namespace ChatApp
         private readonly ClientBase _client = transportProtocol == ProtocolVariant.Tcp
             ? new TcpClient(serverAddress, serverPort)
             : new UdpClient(serverAddress, serverPort, udpTimeout, maxRetransmissions);
+
+        private readonly MessageCrafter _messageCrafter = new(transportProtocol);
         
         private readonly SemaphoreSlim _messageSemaphore = new(1, 1);
         private readonly Queue<Message> _messageQueue = new();
@@ -96,7 +98,7 @@ namespace ChatApp
                     _waitingForReply = true;
                 }
 
-                string? messageContent = messageToProcess.CraftTcp();
+                var messageContent = _messageCrafter.Craft(messageToProcess);
                 if (messageContent != null)
                 {
                     await _client.SendMessageAsync(messageContent);
@@ -147,17 +149,17 @@ namespace ChatApp
                     }
                     
                     _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                    Console.WriteLine($"State: {_clientState.GetCurrentState()}, possible user input: {_possibleClientMessageType}");
+                    
+                    // Debug client state:
+                    // Console.WriteLine($"State: {_clientState.GetCurrentState()}, possible user input: {_possibleClientMessageType}");
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
-                        await _client.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").CraftTcp());
+                        await _client.SendMessageAsync(_messageCrafter.Craft(new ErrMessage(_displayName,"Error occured while receiving message from server")));
                         message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
                         
-                        
-                        await _client.SendMessageAsync(new ByeMessage().CraftTcp());
-                        
+                        await _client.SendMessageAsync(_messageCrafter.Craft(new ByeMessage()));
                         
                         ErrorHandler.ExitSuccess();
                     }
@@ -174,9 +176,9 @@ namespace ChatApp
                             while (_messageQueue.Count > 0 && !_waitingForReply)
                             {
                                 var messageToSent = _messageQueue.Dequeue();
-                                if (messageToSent.CraftTcp() != null)
+                                if (_messageCrafter.Craft(messageToSent)!= null)
                                 {
-                                    await _client.SendMessageAsync(messageToSent.CraftTcp());
+                                    await _client.SendMessageAsync(_messageCrafter.Craft(messageToSent));
                                 }
                                 
                                 // if message that need reply is in the queue, break the cycle and wait for reply from server
@@ -214,7 +216,7 @@ namespace ChatApp
             Message message = new ByeMessage();
             try
             {
-                await _client.SendMessageAsync(message.CraftTcp());
+                await _client.SendMessageAsync(_messageCrafter.Craft(message));
                 ErrorHandler.ExitSuccess();
             }
             catch (Exception ex)

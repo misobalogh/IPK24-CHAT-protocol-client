@@ -5,56 +5,54 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ChatApp
+namespace ChatApp;
+public class TcpClient : ClientBase
 {
-    public class TcpClient
+   
+    private bool _connectionTerminated;
+
+    public TcpClient(string serverAddress, int serverPort)
     {
-        private readonly Socket _socket = null!;
-        private readonly NetworkStream _stream = null!;
-        private readonly StreamWriter _writer = null!;
-        private readonly StreamReader _reader = null!;
-        private bool _connectionTerminated;
-
-        public TcpClient(string serverAddress, int serverPort)
+        try
         {
-            try
+            if (!IPAddress.TryParse(serverAddress, out var address))
             {
-                if (!IPAddress.TryParse(serverAddress, out var address))
+                IPAddress[] addresses = Dns.GetHostAddresses(serverAddress);
+                if (addresses.Length == 0)
                 {
-                    IPAddress[] addresses = Dns.GetHostAddresses(serverAddress);
-                    if (addresses.Length == 0)
-                    {
-                        ErrorHandler.ExitWith("Failed to resolve server address", ExitCode.ConnectionError);
-                    }
-
-                    address = addresses[0];
+                    ErrorHandler.ExitWith("Failed to resolve server address", ExitCode.ConnectionError);
                 }
 
-                _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                IPEndPoint endPoint = new IPEndPoint(address, serverPort);
-                _socket.Connect(endPoint);
-
-                _stream = new NetworkStream(_socket);
-
-                _writer = new StreamWriter(_stream, Encoding.ASCII);
-                _reader = new StreamReader(_stream, Encoding.ASCII);
+                address = addresses[0];
             }
-            catch (Exception ex)
-            {
-                Close();
-                ErrorHandler.ExitWith($"Error occurred when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
-            }
+
+            Socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            IPEndPoint endPoint = new IPEndPoint(address, serverPort);
+            Socket.Connect(endPoint);
+
+            Stream = new NetworkStream(Socket);
+
+            Writer = new StreamWriter(Stream, Encoding.ASCII);
+            Reader = new StreamReader(Stream, Encoding.ASCII);
         }
+        catch (Exception ex)
+        {
+            Close();
+            ErrorHandler.ExitWith($"Error occurred when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
+        }
+    }
 
-        public async Task SendMessageAsync(string? message)
+    public override async Task SendMessageAsync(object? message)
+    {
+        if (message is string stringMessage)
         {
             try
             {
                 if (!_connectionTerminated)
                 {
-                    await _writer.WriteAsync(message);
-                    await _writer.FlushAsync();
+                    await Writer.WriteAsync(stringMessage);
+                    await Writer.FlushAsync();
                 }
             }
             catch (Exception ex)
@@ -64,37 +62,34 @@ namespace ChatApp
                 throw;
             }
         }
-
-        public async Task<string?> ReceiveMessageAsync()
+        else
         {
-            try
-            {
-                if (!_connectionTerminated)
-                {
-                    var message = await _reader.ReadLineAsync();
-                    if (message == null)
-                    {
-                        _connectionTerminated = true;
-                        ErrorHandler.ExitWith("Connection terminated by the server", ExitCode.ConnectionError);
-                    }
-                    return message;
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
-                Close();
-                throw;
-            }
+            Close();
+            ErrorHandler.ExitWith("Invalid type of message to sent", ExitCode.UnknownParam);
         }
+    }
 
-        public void Close()
+    public override async Task<string?> ReceiveMessageAsync()
+    {
+        try
         {
-            _reader?.Close();
-            _writer?.Close();
-            _stream?.Close();
-            _socket?.Close();
+            if (!_connectionTerminated)
+            {
+                var message = await Reader.ReadLineAsync();
+                if (message == null)
+                {
+                    _connectionTerminated = true;
+                    ErrorHandler.ExitWith("Connection terminated by the server", ExitCode.ConnectionError);
+                }
+                return message;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
+            Close();
+            throw;
         }
     }
 }

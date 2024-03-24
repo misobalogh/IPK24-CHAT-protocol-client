@@ -9,19 +9,20 @@ internal static class Program
     {
         var cmdArgs = new CommandLineArguments(args);
         
-        var msg = MessageParser.ParseMessage(new ReplyMessage(false ,"abc", 11, 22).CraftUdp());
-        Console.WriteLine(msg.CraftTcp());
-        Console.WriteLine(msg?.MessageId);
-        // UserInputHandler userInputHandler = new UserInputHandler(
-        //     cmdArgs.TransportProtocol,
-        //     cmdArgs.ServerAddress,
-        //     cmdArgs.ServerPort,
-        //     cmdArgs.UdpTimeout,
-        //     cmdArgs.MaxRetransmissions
-        //     );
-        //
-        // userInputHandler.ProcessInput().Wait();
+        UserInputHandler userInputHandler = new UserInputHandler(
+            cmdArgs.TransportProtocol,
+            cmdArgs.ServerAddress,
+            cmdArgs.ServerPort,
+            cmdArgs.UdpTimeout,
+            cmdArgs.MaxRetransmissions
+            );
+        
+        userInputHandler.ProcessInput().Wait();
 
+        
+        // var msg = MessageParser.ParseMessage(new ReplyMessage(false ,"abc", 11, 22).CraftUdp());
+        // Console.WriteLine(msg.CraftTcp());
+        // Console.WriteLine(msg?.MessageId);
     }
 }
 

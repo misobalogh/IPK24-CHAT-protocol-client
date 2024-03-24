@@ -1,4 +1,5 @@
 using System;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using ChatApp.Enums;
 using ChatApp.Messages;
@@ -9,7 +10,11 @@ namespace ChatApp
     {
         private bool _exit;
         private string _displayName = "";
-        private readonly TcpClient _tcpClient = new(serverAddress, serverPort);
+
+        private readonly ClientBase _client = transportProtocol == ProtocolVariant.Tcp
+            ? new TcpClient(serverAddress, serverPort)
+            : new UdpClient(serverAddress, serverPort, udpTimeout, maxRetransmissions);
+        
         private readonly SemaphoreSlim _messageSemaphore = new(1, 1);
         private readonly Queue<Message> _messageQueue = new();
         private readonly ClientState _clientState = new();
@@ -94,7 +99,7 @@ namespace ChatApp
                 string? messageContent = messageToProcess.CraftTcp();
                 if (messageContent != null)
                 {
-                    await _tcpClient.SendMessageAsync(messageContent);
+                    await _client.SendMessageAsync(messageContent);
                 }
             }
             finally
@@ -109,7 +114,7 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
-                    string? receivedMessage = await _tcpClient.ReceiveMessageAsync();
+                    string? receivedMessage = await _client.ReceiveMessageAsync();
                     if (receivedMessage == null)
                     {
                         continue;
@@ -120,7 +125,7 @@ namespace ChatApp
                     
                     if (_receivedMessageType == MessageType.Bye)
                     {
-                        _tcpClient.Close();
+                        _client.Close();
                         ErrorHandler.InformUser("Connection terminated from server");
                         ErrorHandler.ExitSuccess();
                     }
@@ -146,10 +151,14 @@ namespace ChatApp
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
-                        await _tcpClient.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").CraftTcp());
+                        await _client.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server").CraftTcp());
                         message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                        await _tcpClient.SendMessageAsync(new ByeMessage().CraftTcp());
+                        
+                        
+                        await _client.SendMessageAsync(new ByeMessage().CraftTcp());
+                        
+                        
                         ErrorHandler.ExitSuccess();
                     }
                     
@@ -167,7 +176,7 @@ namespace ChatApp
                                 var messageToSent = _messageQueue.Dequeue();
                                 if (messageToSent.CraftTcp() != null)
                                 {
-                                    await _tcpClient.SendMessageAsync(messageToSent.CraftTcp());
+                                    await _client.SendMessageAsync(messageToSent.CraftTcp());
                                 }
                                 
                                 // if message that need reply is in the queue, break the cycle and wait for reply from server
@@ -205,7 +214,7 @@ namespace ChatApp
             Message message = new ByeMessage();
             try
             {
-                await _tcpClient.SendMessageAsync(message.CraftTcp());
+                await _client.SendMessageAsync(message.CraftTcp());
                 ErrorHandler.ExitSuccess();
             }
             catch (Exception ex)

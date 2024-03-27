@@ -26,6 +26,8 @@ namespace ChatApp
         private bool _waitingForReply = false;
         private MessageType _receivedMessageType = MessageType.None;
         private MessageType _possibleClientMessageType = MessageType.Auth;
+        
+        private readonly HashSet<ushort> _processedIds = [];
 
         public async Task ProcessInput()
         {
@@ -117,7 +119,6 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
-                    Console.WriteLine("cakam...");
                     object? receivedMessage = await _client.ReceiveMessageAsync();
                     if (receivedMessage == null)
                     {
@@ -135,7 +136,12 @@ namespace ChatApp
                         message = MessageParser.ParseMessage(bytesMessage);
                         if (message != null)
                         {
+                            Console.WriteLine(message.CraftTcp() ?? "" + message.MessageId);
                             SendConfirm(message.MessageId);
+                            if (!_processedIds.Add(message.MessageId))
+                            {
+                                continue;
+                            }
                         }
                     }
                     else
@@ -165,20 +171,16 @@ namespace ChatApp
                     }
                     
                     // ignore unexpected reply message
-                    if (_receivedMessageType is MessageType.Reply or MessageType.NotReply && !_waitingForReply)
-                    {
-                        continue;
-                    }
-                    
                     if (_receivedMessageType is MessageType.Reply or MessageType.NotReply)
                     {
+                        if (!_waitingForReply)
+                        {
+                            continue;
+                        }
                         _waitingForReply = false;
                     }
                     
                     _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                    
-                    // Debug client state:
-                    // Console.WriteLine($"State: {_clientState.GetCurrentState()}, possible user input: {_possibleClientMessageType}");
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {

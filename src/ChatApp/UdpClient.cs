@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using ChatApp.Messages;
 
 namespace ChatApp;
 
@@ -18,6 +19,7 @@ public class UdpClient : ClientBase
         _serverPort = serverPort;
         _udpClient = new System.Net.Sockets.UdpClient();
         _udpClient.Client.ReceiveTimeout = udpTimeout;
+        _udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
     }
 
     public override async Task SendMessageAsync(object? message)
@@ -44,9 +46,9 @@ public class UdpClient : ClientBase
     {
         try
         {
-            _udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, _serverPort));
-
             UdpReceiveResult result = await _udpClient.ReceiveAsync();
+            var port = result.RemoteEndPoint.Port;
+            
             return result.Buffer;
         }
         catch (Exception ex)

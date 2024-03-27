@@ -117,6 +117,7 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
+                    Console.WriteLine("cakam...");
                     object? receivedMessage = await _client.ReceiveMessageAsync();
                     if (receivedMessage == null)
                     {
@@ -132,6 +133,10 @@ namespace ChatApp
                     else if (transportProtocol == ProtocolVariant.Udp && receivedMessage is byte[] bytesMessage)
                     {
                         message = MessageParser.ParseMessage(bytesMessage);
+                        if (message != null)
+                        {
+                            SendConfirm(message.MessageId);
+                        }
                     }
                     else
                     {
@@ -144,6 +149,7 @@ namespace ChatApp
                     if (_receivedMessageType == MessageType.Confirm)
                     {
                         Console.WriteLine("Confirm received");
+                        continue;
                     }
                     
                     if (_receivedMessageType == MessageType.Bye)
@@ -201,7 +207,7 @@ namespace ChatApp
                                 {
                                     await _client.SendMessageAsync(_messageCrafter.Craft(messageToSent));
                                 }
-                                
+
                                 // if message that need reply is in the queue, break the cycle and wait for reply from server
                                 if (messageToSent.Type is MessageType.Auth or MessageType.Join)
                                 {
@@ -243,6 +249,19 @@ namespace ChatApp
             catch (Exception ex)
             {
                 ErrorHandler.InternalError($"Error sending message bye: {ex.Message}");
+            }
+        }
+        
+        private async void SendConfirm(ushort refId)
+        {
+            Message message = new ConfirmMessage(refId);
+            try
+            {
+                await _client.SendMessageAsync(_messageCrafter.Craft(message));
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler.InternalError($"Error while sending confirm message: {ex.Message}");
             }
         }
 

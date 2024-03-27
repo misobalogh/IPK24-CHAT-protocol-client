@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -9,61 +8,35 @@ namespace ChatApp;
 
 public class UdpClient : ClientBase
 {
-    private int _maxMessageSize = 2048;
-    private readonly byte _maxRetransmissions;
-    private readonly IPEndPoint _endPoint = null!;
+    private readonly string _serverAddress;
+    private readonly int _serverPort;
+    private readonly System.Net.Sockets.UdpClient _udpClient;
 
     public UdpClient(string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
     {
-        _maxRetransmissions = maxRetransmissions;
-            
-        try
-        {
-            if (!IPAddress.TryParse(serverAddress, out var address))
-            {
-                IPAddress[] addresses = Dns.GetHostAddresses(serverAddress);
-                if (addresses.Length == 0)
-                {
-                    ErrorHandler.ExitWith("Failed to resolve server address", ExitCode.ConnectionError);
-                }
-
-                address = addresses[0];
-            }
-                
-            _endPoint = new IPEndPoint(address, serverPort);
-                
-            Socket = new Socket(address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            Socket.ReceiveTimeout = udpTimeout;
-        }
-        catch(Exception ex)
-        {
-            Close();
-            ErrorHandler.ExitWith($"Error occurred when connecting to the server: {ex.Message}", ExitCode.ConnectionError);
-        }
+        _serverAddress = serverAddress;
+        _serverPort = serverPort;
+        _udpClient = new System.Net.Sockets.UdpClient();
+        _udpClient.Client.ReceiveTimeout = udpTimeout;
     }
 
     public override async Task SendMessageAsync(object? message)
     {
-        if (message is byte[] byteArrayMessage)
+        if (message is byte[] byteMessage)
         {
-            for (byte retransmissionCount = 0; retransmissionCount < _maxRetransmissions; retransmissionCount++)
+            try
             {
-                try
-                {
-                    await Socket.SendToAsync(byteArrayMessage, SocketFlags.None, _endPoint);
-                    return;
-                }
-                catch (SocketException)
-                {
-                    // transmission error
-                }
+                await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
             }
-
-            // max retransmission failure
+            catch (Exception ex)
+            {
+                ErrorHandler.InternalError($"Error sending message: {ex.Message}");
+                throw;
+            }
         }
         else
         {
-            // invalid message type
+            ErrorHandler.ExitWith("Invalid type of message to send", ExitCode.UnknownParam);
         }
     }
 
@@ -71,13 +44,20 @@ public class UdpClient : ClientBase
     {
         try
         {
-            var recBuffer = new byte[_maxMessageSize]; 
-            var numOfReceivedBytes = await Socket.ReceiveFromAsync(recBuffer, SocketFlags.None, _endPoint);
-            return recBuffer;
+            _udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, _serverPort));
+
+            UdpReceiveResult result = await _udpClient.ReceiveAsync();
+            return result.Buffer;
         }
-        catch (SocketException)
+        catch (Exception ex)
         {
-            return null;
+            ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
+            throw;
         }
+    }
+
+    public void Close()
+    {
+        _udpClient.Close();
     }
 }

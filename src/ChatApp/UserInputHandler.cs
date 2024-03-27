@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using ChatApp.Enums;
 using ChatApp.Messages;
@@ -138,6 +140,11 @@ namespace ChatApp
                     }
                     
                     _receivedMessageType = message?.Type ?? MessageType.None;
+
+                    if (_receivedMessageType == MessageType.Confirm)
+                    {
+                        Console.WriteLine("Confirm received");
+                    }
                     
                     if (_receivedMessageType == MessageType.Bye)
                     {

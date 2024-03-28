@@ -136,9 +136,9 @@ namespace ChatApp
                         message = MessageParser.ParseMessage(bytesMessage);
                         if (message != null)
                         {
-                            Console.WriteLine(message.CraftTcp() ?? "" + message.MessageId);
+                            Console.WriteLine($"Message: {message.Type}, ID: {message.MessageId}, IDs list: {PrintReceivedIds()} sending confirm...");
                             SendConfirm(message.MessageId);
-                            if (!_processedIds.Add(message.MessageId))
+                            if (message.Type != MessageType.Confirm && !_processedIds.Add(message.MessageId))
                             {
                                 continue;
                             }
@@ -147,15 +147,27 @@ namespace ChatApp
                     else
                     {
                         message = null;
-                        ErrorHandler.InformUser("Received message of wrong type ");
+                        ErrorHandler.ExitWith("Received message of wrong type ", ExitCode.UnknownMessageType);
                     }
                     
                     _receivedMessageType = message?.Type ?? MessageType.None;
+                    Console.WriteLine($"Message: {_receivedMessageType}, ID: {message?.MessageId}");
+                    
 
-                    if (_receivedMessageType == MessageType.Confirm)
+                    // if (_receivedMessageType == MessageType.Confirm)
+                    // {
+                    //     Console.WriteLine("Confirm received");
+                    //     continue;
+                    // }
+                    
+                    // ignore unexpected reply message
+                    if (_receivedMessageType is MessageType.Reply or MessageType.NotReply)
                     {
-                        Console.WriteLine("Confirm received");
-                        continue;
+                        if (!_waitingForReply)
+                        {
+                            continue;
+                        }
+                        _waitingForReply = false;
                     }
                     
                     if (_receivedMessageType == MessageType.Bye)
@@ -169,18 +181,12 @@ namespace ChatApp
                     {
                         SendBye();
                     }
-                    
-                    // ignore unexpected reply message
-                    if (_receivedMessageType is MessageType.Reply or MessageType.NotReply)
+
+                    if (_receivedMessageType != MessageType.Confirm)
                     {
-                        if (!_waitingForReply)
-                        {
-                            continue;
-                        }
-                        _waitingForReply = false;
+                        _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
+                        Console.WriteLine(_clientState.GetCurrentState());
                     }
-                    
-                    _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
@@ -228,6 +234,16 @@ namespace ChatApp
             {
                 ErrorHandler.InternalError($"Error while receiving messages: {ex.Message}");
             }
+        }
+
+        private string PrintReceivedIds()
+        {
+            string result = "";
+            foreach (var item in _processedIds)
+            {
+                result += item.ToString() + " ";
+            }
+            return result;
         }
 
         private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
@@ -329,7 +345,7 @@ namespace ChatApp
 
             if (_clientState.GetCurrentState() != State.Open)
             {
-                ErrorHandler.InternalError("Cannot use /join in the current state of the client");
+                ErrorHandler.InternalError($"Cannot use /join in the current state of the client. State {_clientState.GetCurrentState()}");
                 return;
             }
 

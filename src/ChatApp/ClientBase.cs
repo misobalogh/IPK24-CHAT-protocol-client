@@ -11,7 +11,7 @@ public abstract class ClientBase
     protected StreamReader Reader = null!;
     public abstract Task<object?> ReceiveMessageAsync();
     public abstract Task SendMessageAsync(object? message); 
-    public void Close()
+    public virtual void Close()
     {
         Reader?.Close();
         Writer?.Close();

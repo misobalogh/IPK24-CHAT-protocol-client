@@ -58,7 +58,7 @@ public class UdpClient : ClientBase
         }
     }
 
-    public void Close()
+    public override void Close()
     {
         _udpClient.Close();
     }

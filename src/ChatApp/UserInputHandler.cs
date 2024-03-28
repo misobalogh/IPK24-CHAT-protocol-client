@@ -18,8 +18,6 @@ namespace ChatApp
             ? new TcpClient(serverAddress, serverPort)
             : new UdpClient(serverAddress, serverPort, udpTimeout, maxRetransmissions);
 
-        private readonly MessageCrafter _messageCrafter = new(transportProtocol);
-        
         private readonly SemaphoreSlim _messageSemaphore = new(1, 1);
         private readonly Queue<Message> _messageQueue = new();
         private readonly ClientState _clientState = new();
@@ -27,7 +25,6 @@ namespace ChatApp
         private MessageType _receivedMessageType = MessageType.None;
         private MessageType _possibleClientMessageType = MessageType.Auth;
         
-        private readonly HashSet<ushort> _processedIds = [];
 
         public async Task ProcessInput()
         {
@@ -100,12 +97,8 @@ namespace ChatApp
                 {
                     _waitingForReply = true;
                 }
-
-                var messageContent = _messageCrafter.Craft(messageToProcess);
-                if (messageContent != null)
-                {
-                    await _client.SendMessageAsync(messageContent);
-                }
+                
+                await _client.SendMessageAsync(messageToProcess);
             }
             finally
             {
@@ -119,40 +112,14 @@ namespace ChatApp
             {
                 while (!_exit)
                 {
-                    object? receivedMessage = await _client.ReceiveMessageAsync();
-                    if (receivedMessage == null)
+                    Message? message = await _client.ReceiveMessageAsync();
+                    if (message == null)
                     {
                         continue;
                     }
-                    
-                    Message? message;
 
-                    if (transportProtocol == ProtocolVariant.Tcp && receivedMessage is string stringMessage)
-                    {
-                        message = MessageParser.ParseMessage(stringMessage);
-                    }
-                    else if (transportProtocol == ProtocolVariant.Udp && receivedMessage is byte[] bytesMessage)
-                    {
-                        message = MessageParser.ParseMessage(bytesMessage);
-                        if (message != null)
-                        {
-                            Console.WriteLine($"Message: {message.Type}, ID: {message.MessageId}, IDs list: {PrintReceivedIds()} sending confirm...");
-                            SendConfirm(message.MessageId);
-                            if (message.Type != MessageType.Confirm && !_processedIds.Add(message.MessageId))
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        message = null;
-                        ErrorHandler.ExitWith("Received message of wrong type ", ExitCode.UnknownMessageType);
-                    }
-                    
-                    _receivedMessageType = message?.Type ?? MessageType.None;
+                    _receivedMessageType = message.Type;
                     Console.WriteLine($"Message: {_receivedMessageType}, ID: {message?.MessageId}");
-                    
 
                     // if (_receivedMessageType == MessageType.Confirm)
                     // {
@@ -190,11 +157,11 @@ namespace ChatApp
                     
                     if (_clientState.GetCurrentState() == State.Error)
                     {
-                        await _client.SendMessageAsync(_messageCrafter.Craft(new ErrMessage(_displayName,"Error occured while receiving message from server", _messageId++)));
+                        await _client.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server", _messageId++));
                         message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
                         
-                        await _client.SendMessageAsync(_messageCrafter.Craft(new ByeMessage(_messageId++)));
+                        await _client.SendMessageAsync(new ByeMessage(_messageId++));
                         
                         ErrorHandler.ExitSuccess();
                     }
@@ -211,10 +178,7 @@ namespace ChatApp
                             while (_messageQueue.Count > 0 && !_waitingForReply)
                             {
                                 var messageToSent = _messageQueue.Dequeue();
-                                if (_messageCrafter.Craft(messageToSent)!= null)
-                                {
-                                    await _client.SendMessageAsync(_messageCrafter.Craft(messageToSent));
-                                }
+                                await _client.SendMessageAsync(messageToSent);
 
                                 // if message that need reply is in the queue, break the cycle and wait for reply from server
                                 if (messageToSent.Type is MessageType.Auth or MessageType.Join)
@@ -236,16 +200,6 @@ namespace ChatApp
             }
         }
 
-        private string PrintReceivedIds()
-        {
-            string result = "";
-            foreach (var item in _processedIds)
-            {
-                result += item.ToString() + " ";
-            }
-            return result;
-        }
-
         private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs eventArgs)
         {
             if (eventArgs.SpecialKey is ConsoleSpecialKey.ControlC)
@@ -261,25 +215,12 @@ namespace ChatApp
             Message message = new ByeMessage(_messageId++);
             try
             {
-                await _client.SendMessageAsync(_messageCrafter.Craft(message));
+                await _client.SendMessageAsync(message);
                 ErrorHandler.ExitSuccess();
             }
             catch (Exception ex)
             {
                 ErrorHandler.InternalError($"Error sending message bye: {ex.Message}");
-            }
-        }
-        
-        private async void SendConfirm(ushort refId)
-        {
-            Message message = new ConfirmMessage(refId);
-            try
-            {
-                await _client.SendMessageAsync(_messageCrafter.Craft(message));
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.InternalError($"Error while sending confirm message: {ex.Message}");
             }
         }
 

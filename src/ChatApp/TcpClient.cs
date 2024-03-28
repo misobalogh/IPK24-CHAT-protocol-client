@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using ChatApp.Messages;
 
 namespace ChatApp;
 public class TcpClient : ClientBase
@@ -42,33 +43,33 @@ public class TcpClient : ClientBase
         }
     }
 
-    public override async Task SendMessageAsync(object? message)
+    public override async Task SendMessageAsync(Message message)
     {
-        if (message is string stringMessage)
+        try
         {
-            try
+            if (!_connectionTerminated)
             {
-                if (!_connectionTerminated)
-                {
-                    await Writer.WriteAsync(stringMessage);
-                    await Writer.FlushAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorHandler.InternalError($"Error sending message: {ex.Message}");
-                Close();
-                throw;
+                await Writer.WriteAsync(message.CraftTcp());
+                await Writer.FlushAsync();
             }
         }
-        else
+        catch (Exception ex)
         {
+            ErrorHandler.InternalError($"Error sending message: {ex.Message}");
             Close();
-            ErrorHandler.ExitWith("Invalid type of message to sent", ExitCode.UnknownParam);
+            throw;
         }
     }
 
-    public override async Task<object?> ReceiveMessageAsync()
+    public override void Close()
+    {
+        Reader?.Close();
+        Writer?.Close();
+        Stream?.Close();
+        Socket?.Close();
+    }
+
+    public override async Task<Message?> ReceiveMessageAsync()
     {
         try
         {
@@ -80,7 +81,11 @@ public class TcpClient : ClientBase
                     _connectionTerminated = true;
                     ErrorHandler.ExitWith("Connection terminated by the server", ExitCode.ConnectionError);
                 }
-                return message;
+                else
+                {
+                    Message? parsedMessage = MessageParser.ParseMessage(message);
+                    return parsedMessage;
+                }
             }
             return null;
         }

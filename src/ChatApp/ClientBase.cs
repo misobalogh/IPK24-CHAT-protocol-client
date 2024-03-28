@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using ChatApp.Messages;
 
 namespace ChatApp;
 public abstract class ClientBase
@@ -9,13 +10,7 @@ public abstract class ClientBase
     protected NetworkStream Stream = null!;
     protected StreamWriter Writer = null!;
     protected StreamReader Reader = null!;
-    public abstract Task<object?> ReceiveMessageAsync();
-    public abstract Task SendMessageAsync(object? message); 
-    public virtual void Close()
-    {
-        Reader?.Close();
-        Writer?.Close();
-        Stream?.Close();
-        Socket?.Close();
-    }
+    public abstract Task<Message?> ReceiveMessageAsync();
+    public abstract Task SendMessageAsync(Message message);
+    public abstract void Close();
 }

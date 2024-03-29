@@ -141,10 +141,10 @@ namespace ChatApp
         {
             Console.WriteLine($"Confirm received, message {messageId}");
             _confirmationTimer.Stop();
-            if (_messageQueue.Count > 0)
-            {
-               _messageQueue.Dequeue();
-            }
+            // if (_messageQueue.Count > 0)
+            // {
+            //    _messageQueue.Dequeue();
+            // }
         }
 
         private async void OnConfirmationTimeout(object? sender, ElapsedEventArgs elapsedEventArgs)

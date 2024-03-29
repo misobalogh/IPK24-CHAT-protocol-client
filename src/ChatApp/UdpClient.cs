@@ -11,27 +11,13 @@ using ChatApp.Messages;
 
 namespace ChatApp
 {
-    public class UdpClient : ClientBase
+    public class UdpClient(string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
+        : ClientBase
     {
-        private readonly string _serverAddress;
-        private readonly int _serverPort;
-        private readonly System.Net.Sockets.UdpClient _udpClient;
-        private readonly ushort _confirmationTimeout;
-        private readonly byte _maxRetransmissions;
+        private int _serverPort = serverPort;
+        private readonly System.Net.Sockets.UdpClient _udpClient = new(0);
         private readonly Dictionary<ushort, StoredMessage> _storedMessages = new();
-
-        public UdpClient(string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
-        {
-            _serverAddress = serverAddress;
-            _serverPort = serverPort;
-            _udpClient = new System.Net.Sockets.UdpClient();
-            _udpClient.Client.ReceiveTimeout = udpTimeout;
-            _udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
-
-            _confirmationTimeout = udpTimeout;
-            _maxRetransmissions = maxRetransmissions;
-        }
-
+        private bool _bound = false;
         public override async Task SendMessageAsync(Message message)
         {
             try
@@ -39,7 +25,7 @@ namespace ChatApp
                 var byteMessage = message.CraftUdp();
                 if (byteMessage != null)
                 {
-                    await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
+                    await _udpClient.SendAsync(byteMessage, byteMessage.Length, serverAddress, _serverPort);
                     if (message.Type != MessageType.Confirm)
                     {
                         StartConfirmationTimer(message.MessageId, byteMessage);
@@ -66,10 +52,16 @@ namespace ChatApp
 
                 if (message is { Type: MessageType.Confirm })
                 {
-                    StopConfirmationTimer(message.MessageId);
+                    OnConfirmReceived(message.MessageId);
                 }
                 else
                 {
+                    if (!_bound)
+                    {
+                        _serverPort  = (ushort)result.RemoteEndPoint.Port;
+                        _bound = true;
+                    }
+                    
                     SendConfirm(message.MessageId);
                     return message;
                 }
@@ -96,7 +88,7 @@ namespace ChatApp
 
         private void StartConfirmationTimer(ushort messageId, byte[] byteMessage)
         {
-            var timer = new Timer(_confirmationTimeout);
+            var timer = new Timer(udpTimeout);
             timer.Elapsed += (sender, e) => OnConfirmationTimeout(messageId);
             timer.AutoReset = false;
             timer.Start();
@@ -104,35 +96,40 @@ namespace ChatApp
             {
                 _storedMessages[messageId] = new StoredMessage(0, byteMessage, timer);
             }
+            Console.WriteLine($"Dict start");
+            foreach (var kvp in _storedMessages)
+            {
+                Console.WriteLine($"Message ID: {kvp.Key}, Retransmission Count: {kvp.Value.RetransmissionCount}, Confirmed? {kvp.Value.Confirmed}");
+            }
+            Console.WriteLine($"Dict End");
         }
 
-        private void StopConfirmationTimer(ushort messageId)
+        private void OnConfirmReceived(ushort messageId)
         {
-            if (_storedMessages.TryGetValue(messageId, out var storedMessage))
+            if (_storedMessages.TryGetValue(messageId, out var storedMessage) && !storedMessage.Confirmed)
             {
-                Console.WriteLine($"removed message {messageId}");
+                Console.WriteLine($"Confirm received, message {messageId}");
                 storedMessage.Timer.Stop();
                 storedMessage.Timer.Dispose();
-                _storedMessages.Remove(messageId);
+                storedMessage.Confirmed = true;
+            }
+            else
+            {
+                Console.WriteLine($"Confirm received, but was already confirmed, id: {messageId}");
             }
         }
 
         private async void OnConfirmationTimeout(ushort messageId)
         {
-            foreach (var kvp in _storedMessages)
-            {
-                Console.WriteLine($"Message ID: {kvp.Key}, Retransmission Count: {kvp.Value.RetransmissionCount}");
-            }
-
-            if (_storedMessages.TryGetValue(messageId, out var storedMessage))
+            if (_storedMessages.TryGetValue(messageId, out var storedMessage) && !storedMessage.Confirmed)
             {
                 Console.WriteLine("Trying to send again");
                 var retries = storedMessage.RetransmissionCount;
-                if (retries < _maxRetransmissions)
+                if (retries < maxRetransmissions)
                 {
                     try
                     {
-                        await _udpClient.SendAsync(storedMessage.ByteMessage, storedMessage.ByteMessage.Length, _serverAddress, _serverPort);
+                        await _udpClient.SendAsync(storedMessage.ByteMessage, storedMessage.ByteMessage.Length, serverAddress, _serverPort);
                         storedMessage.RetransmissionCount++;
                         
                         storedMessage.Timer.Stop();
@@ -168,6 +165,7 @@ namespace ChatApp
             public byte RetransmissionCount { get; set; } = retransmissionCount;
             public byte[] ByteMessage { get; } = byteMessage;
             public Timer Timer { get; set; } = timer;
+            public bool Confirmed { get; set; } = false;
         }
     }
 }

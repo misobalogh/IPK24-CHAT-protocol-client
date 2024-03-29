@@ -20,12 +20,6 @@ public abstract class Message(ushort messageId = 0)
     public abstract void PrintOutput();
     
     // Method used by CraftUdp method, to concatenate bytes to form the final message
-    protected static int CopyToByteArray(byte[] source, byte[] destination, int offset)
-    {
-        Array.Copy(source, 0, destination, offset, source.Length);
-        return source.Length;
-    }
-    
     protected static byte[] ByteMessageConcat(params byte[][] byteArrays)
     {
         int totalLength = byteArrays.Sum(arr => arr.Length);

@@ -119,7 +119,6 @@ namespace ChatApp
                     }
 
                     _receivedMessageType = message.Type;
-                    Console.WriteLine($"Message: {_receivedMessageType}, ID: {message?.MessageId}");
 
                     // if (_receivedMessageType == MessageType.Confirm)
                     // {
@@ -152,7 +151,6 @@ namespace ChatApp
                     if (_receivedMessageType != MessageType.Confirm)
                     {
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                        Console.WriteLine(_clientState.GetCurrentState());
                     }
                     
                     if (_clientState.GetCurrentState() == State.Error)

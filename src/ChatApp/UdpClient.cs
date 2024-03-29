@@ -11,31 +11,66 @@ using ChatApp.Messages;
 
 namespace ChatApp
 {
-    public class UdpClient(string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
-        : ClientBase
+    public class UdpClient : ClientBase
     {
-        private int _serverPort = serverPort;
-        private readonly System.Net.Sockets.UdpClient _udpClient = new(0);
-        private readonly Dictionary<ushort, StoredMessage> _storedMessages = new();
-        private bool _bound = false;
+        private int _serverPort;
+        private readonly System.Net.Sockets.UdpClient _udpClient = new();
+        private readonly Queue<StoredMessage> _messageQueue = new();
+        private bool _boundPort = false;
+        private readonly string _serverAddress;
+        private readonly ushort _udpTimeout;
+        private readonly byte _maxRetransmissions;
+        private readonly Timer _confirmationTimer;
+        public UdpClient(string serverAddress, ushort serverPort, ushort udpTimeout, byte maxRetransmissions)
+        {
+            _serverAddress = serverAddress;
+            _udpTimeout = udpTimeout;
+            _maxRetransmissions = maxRetransmissions;
+            _serverPort = serverPort;
+            _udpClient.Client.Bind(new IPEndPoint(IPAddress.Any, 0));
+            
+            _confirmationTimer = new Timer(_udpTimeout);
+            _confirmationTimer.AutoReset = false;
+            _confirmationTimer.Elapsed += OnConfirmationTimeout;
+        }
+
         public override async Task SendMessageAsync(Message message)
         {
             try
             {
                 var byteMessage = message.CraftUdp();
-                if (byteMessage != null)
+                if (byteMessage == null)
                 {
-                    await _udpClient.SendAsync(byteMessage, byteMessage.Length, serverAddress, _serverPort);
-                    if (message.Type != MessageType.Confirm)
-                    {
-                        StartConfirmationTimer(message.MessageId, byteMessage);
-                    }
+                    return;
+                }
+
+                if (_confirmationTimer.Enabled)
+                {
+                    _messageQueue.Enqueue(new StoredMessage(message));
+                }
+                else
+                {
+                    _messageQueue.Enqueue(new StoredMessage(message));
+                    await SendMessageInternalAsync(message);
                 }
             }
             catch (Exception ex)
             {
                 ErrorHandler.InternalError($"Error sending message: {ex.Message}");
+                Close();
                 throw;
+            }
+        }
+        
+        private async Task SendMessageInternalAsync(Message message)
+        {
+            if (message.CraftUdp() is { } byteMessage)
+            {
+                await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
+                if (message.Type != MessageType.Confirm)
+                {
+                    StartConfirmationTimer();
+                }
             }
         }
 
@@ -52,14 +87,26 @@ namespace ChatApp
 
                 if (message is { Type: MessageType.Confirm })
                 {
+                    if (_messageQueue.Count <= 0 || _messageQueue.First().Message.MessageId != message.MessageId)
+                    {
+                        return null;
+                    }
                     OnConfirmReceived(message.MessageId);
+                    var queuedMessage = _messageQueue.Dequeue();
+                    await SendMessageInternalAsync(queuedMessage.Message);
                 }
                 else
                 {
-                    if (!_bound)
+                    // if (message is ReplyMessage replyMessage)
+                    // {
+                    //     Console.WriteLine($"Reply: {message.MessageId}, {message.CraftTcp()}");
+                    //     replyMessage.PrintRefId();
+                    //
+                    // }
+                    if (!_boundPort)
                     {
                         _serverPort  = (ushort)result.RemoteEndPoint.Port;
-                        _bound = true;
+                        _boundPort = true;
                     }
                     
                     SendConfirm(message.MessageId);
@@ -71,6 +118,7 @@ namespace ChatApp
             catch (Exception ex)
             {
                 ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
+                Close();
                 throw;
             }
         }
@@ -78,72 +126,56 @@ namespace ChatApp
         public override void Close()
         {
             _udpClient.Close();
-
-            foreach (var storedMessage in _storedMessages.Values)
-            {
-                storedMessage.Timer?.Dispose();
-            }
-            _storedMessages.Clear();
+            _messageQueue.Clear();
         }
 
-        private void StartConfirmationTimer(ushort messageId, byte[] byteMessage)
+        private void StartConfirmationTimer()
         {
-            var timer = new Timer(udpTimeout);
-            timer.Elapsed += (sender, e) => OnConfirmationTimeout(messageId);
+            var timer = new Timer(_udpTimeout);
+            timer.Elapsed += OnConfirmationTimeout;
             timer.AutoReset = false;
             timer.Start();
-            if (!_storedMessages.ContainsKey(messageId))
-            {
-                _storedMessages[messageId] = new StoredMessage(0, byteMessage, timer);
-            }
-            Console.WriteLine($"Dict start");
-            foreach (var kvp in _storedMessages)
-            {
-                Console.WriteLine($"Message ID: {kvp.Key}, Retransmission Count: {kvp.Value.RetransmissionCount}, Confirmed? {kvp.Value.Confirmed}");
-            }
-            Console.WriteLine($"Dict End");
         }
 
         private void OnConfirmReceived(ushort messageId)
         {
-            if (_storedMessages.TryGetValue(messageId, out var storedMessage) && !storedMessage.Confirmed)
+            Console.WriteLine($"Confirm received, message {messageId}");
+            _confirmationTimer.Stop();
+            if (_messageQueue.Count > 0)
             {
-                Console.WriteLine($"Confirm received, message {messageId}");
-                storedMessage.Timer.Stop();
-                storedMessage.Timer.Dispose();
-                storedMessage.Confirmed = true;
-            }
-            else
-            {
-                Console.WriteLine($"Confirm received, but was already confirmed, id: {messageId}");
+               _messageQueue.Dequeue();
             }
         }
 
-        private async void OnConfirmationTimeout(ushort messageId)
+        private async void OnConfirmationTimeout(object? sender, ElapsedEventArgs elapsedEventArgs)
         {
-            if (_storedMessages.TryGetValue(messageId, out var storedMessage) && !storedMessage.Confirmed)
+            if (_messageQueue.Count <= 0)
             {
-                Console.WriteLine("Trying to send again");
-                var retries = storedMessage.RetransmissionCount;
-                if (retries < maxRetransmissions)
+                return;
+            }
+            var messageToProcess = _messageQueue.First();
+            var retries = messageToProcess.RetransmissionCount;
+            if (retries < _maxRetransmissions)
+            {
+                try
                 {
-                    try
+                    if (messageToProcess.Message.CraftUdp() is { } byteMessage)
                     {
-                        await _udpClient.SendAsync(storedMessage.ByteMessage, storedMessage.ByteMessage.Length, serverAddress, _serverPort);
-                        storedMessage.RetransmissionCount++;
-                        
-                        storedMessage.Timer.Stop();
-                        storedMessage.Timer.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        ErrorHandler.InternalError($"Error retransmitting message: {ex.Message}");
+                        Console.WriteLine("Trying to send again");
+                        await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
+                        messageToProcess.RetransmissionCount++;
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    ErrorHandler.ExitWith($"Max retransmission count reached. Failed to send message", ExitCode.ConnectionError);
+                    Close();
+                    ErrorHandler.ExitWith($"Failed to send message. {ex}", ExitCode.ConnectionError);   
                 }
+            }
+            else
+            {
+                Close();
+                ErrorHandler.ExitWith($"Max retransmission count reached. Failed to send message", ExitCode.ConnectionError);
             }
         }
 
@@ -160,12 +192,10 @@ namespace ChatApp
             }
         }
 
-        private class StoredMessage(byte retransmissionCount, byte[] byteMessage, Timer timer)
+        private class StoredMessage(Message message)
         {
-            public byte RetransmissionCount { get; set; } = retransmissionCount;
-            public byte[] ByteMessage { get; } = byteMessage;
-            public Timer Timer { get; set; } = timer;
-            public bool Confirmed { get; set; } = false;
+            public byte RetransmissionCount { get; set; } = 0;
+            public Message Message { get; } = message;
         }
     }
 }

@@ -43,4 +43,9 @@ public class ReplyMessage(bool isOk, string messageContent, ushort messageId = 0
         string status = isOk ? "Success" : "Failure";
         Console.Error.WriteLine($"{status}: {messageContent}");
     }
+
+    public void PrintRefId()
+    {
+        Console.WriteLine($"REF ID {refMessageId}");
+    }
 }

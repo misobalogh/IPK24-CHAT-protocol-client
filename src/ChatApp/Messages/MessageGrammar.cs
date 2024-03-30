@@ -9,6 +9,9 @@ using System.Text.RegularExpressions;
 
 namespace ChatApp.Messages;
 
+/// <summary>
+/// Static class for checking correct message grammar for specific parts of the message
+/// </summary>
 public static class MessageGrammar
 {
     public static bool IsId(string contentComponent)

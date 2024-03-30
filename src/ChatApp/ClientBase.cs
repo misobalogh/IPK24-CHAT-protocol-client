@@ -11,13 +11,25 @@ using System.Threading.Tasks;
 using ChatApp.Messages;
 
 namespace ChatApp;
+
+/// <summary>
+/// Base abstract class for individual variant client implementations.
+/// </summary>
 public abstract class ClientBase
 {
-    protected Socket Socket = null!;
-    protected NetworkStream Stream = null!;
-    protected StreamWriter Writer = null!;
-    protected StreamReader Reader = null!;
-    public abstract Task<Message?> ReceiveMessageAsync();
+    /// <summary>
+    /// Asynchronously sends a message to the server.
+    /// </summary>
+    /// <param name="message">The message to send.</param>
     public abstract Task SendMessageAsync(Message message);
+    
+    /// <summary>
+    /// Asynchronously receives a message from the server.
+    /// </summary>
+    public abstract Task<Message?> ReceiveMessageAsync();
+    
+    /// <summary>
+    /// Closes the client connection.
+    /// </summary>
     public abstract void Close();
 }

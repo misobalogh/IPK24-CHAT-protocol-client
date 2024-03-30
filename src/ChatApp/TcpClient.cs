@@ -19,6 +19,10 @@ namespace ChatApp;
 public class TcpClient : ClientBase
 {
     private bool _connectionTerminated;
+    private readonly NetworkStream _stream = null!;
+    private readonly StreamWriter _writer = null!;
+    private readonly StreamReader _reader = null!;
+    private readonly Socket _socket = null!;
 
     public TcpClient(string serverAddress, int serverPort)
     {
@@ -35,15 +39,15 @@ public class TcpClient : ClientBase
                 address = addresses[0];
             }
 
-            Socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            _socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             IPEndPoint endPoint = new IPEndPoint(address, serverPort);
-            Socket.Connect(endPoint);
+            _socket.Connect(endPoint);
 
-            Stream = new NetworkStream(Socket);
+            _stream = new NetworkStream(_socket);
 
-            Writer = new StreamWriter(Stream, Encoding.ASCII);
-            Reader = new StreamReader(Stream, Encoding.ASCII);
+            _writer = new StreamWriter(_stream, Encoding.ASCII);
+            _reader = new StreamReader(_stream, Encoding.ASCII);
         }
         catch(Exception ex)
         {
@@ -58,8 +62,8 @@ public class TcpClient : ClientBase
         {
             if (!_connectionTerminated)
             {
-                await Writer.WriteAsync(message.CraftTcp());
-                await Writer.FlushAsync();
+                await _writer.WriteAsync(message.CraftTcp());
+                await _writer.FlushAsync();
             }
         }
         catch (Exception ex)
@@ -72,10 +76,10 @@ public class TcpClient : ClientBase
 
     public sealed override void Close()
     {
-        Reader?.Close();
-        Writer?.Close();
-        Stream?.Close();
-        Socket?.Close();
+        _reader?.Close();
+        _writer?.Close();
+        _stream?.Close();
+        _socket?.Close();
     }
 
     public override async Task<Message?> ReceiveMessageAsync()
@@ -84,7 +88,7 @@ public class TcpClient : ClientBase
         {
             if (!_connectionTerminated)
             {
-                var message = await Reader.ReadLineAsync();
+                var message = await _reader.ReadLineAsync();
                 if (message == null)
                 {
                     _connectionTerminated = true;

@@ -9,6 +9,9 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
+/// <summary>
+/// Dummy class for indication that something went wrong
+/// </summary>
 public class InvalidMessage(ushort messageId = 0) : Message(messageId)
 {
     public override MessageType Type => MessageType.Invalid;

@@ -5,7 +5,6 @@
  * Date: 30.03.2024
  */
 
-
 using System.Text;
 using ChatApp.Enums;
 using ChatApp.Messages;

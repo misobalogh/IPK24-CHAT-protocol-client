@@ -10,6 +10,10 @@ using ChatApp.Enums;
 
 namespace ChatApp.Messages;
 
+/// <summary>
+/// Base class for all message types
+/// </summary>
+/// <param name="messageId"> Id of the message - used only in UDP variant</param>
 public abstract class Message(ushort messageId = 0)
 {
     public abstract MessageType Type { get; }
@@ -17,16 +21,26 @@ public abstract class Message(ushort messageId = 0)
 
     protected readonly byte[] NullTerminator = [0];
     
-    // creates message for TCP protocol in correct format
+    /// <summary>
+    /// Creates a message for TCP protocol in the correct format.
+    /// </summary>
+    /// <returns>A string representing the message that can be send via TCP protocol.</returns>
     public abstract string? CraftTcp();
     
-    // creates message for UDP protocol in correct format
+    /// <summary>
+    /// Creates a message for UDP protocol in the correct format.
+    /// </summary>
+    /// <returns>An array of bytes that can be send via UDP protocol.</returns>
     public abstract byte[]? CraftUdp();
     
-    // Method that prints useful information to client output, if its required from the specific message type
+    /// <summary>
+    /// Prints useful information to client output, if required by the specific message type.
+    /// </summary>
     public abstract void PrintOutput();
     
-    // Method used by CraftUdp method, to concatenate bytes to form the final message
+    /// <summary>
+    /// Method used by CraftUdp method, to concatenate bytes to form the final message
+    /// </summary>
     protected static byte[] ByteMessageConcat(params byte[][] byteArrays)
     {
         int totalLength = byteArrays.Sum(arr => arr.Length);
@@ -43,6 +57,9 @@ public abstract class Message(ushort messageId = 0)
         return concatenatedBytes;
     }
 
+    /// <summary>
+    /// Converts message id (ushort) to byte array, used in UDP variant
+    /// </summary>
     protected static byte[] GetMessageId(int messageId)
     {
         var messageIdBytes = new byte[2];
@@ -51,6 +68,11 @@ public abstract class Message(ushort messageId = 0)
         return messageIdBytes;
     }
 
+    /// <summary>
+    /// Converts component of message to byte array, used in UDP variant
+    /// </summary>
+    /// <param name="stringToConvert">Part of message</param>
+    /// <returns>byte array of converted string</returns>
     protected static byte[] GetBytesFromString(string stringToConvert)
     {
         return Encoding.ASCII.GetBytes(stringToConvert);

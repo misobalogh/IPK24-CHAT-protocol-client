@@ -61,7 +61,7 @@ public class TcpClient : ClientBase
         }
     }
 
-    public override void Close()
+    public sealed override void Close()
     {
         Reader?.Close();
         Writer?.Close();

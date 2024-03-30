@@ -35,17 +35,10 @@ public class ReplyMessage(bool isOk, string messageContent, ushort messageId = 0
 
         return ByteMessageConcat(messageTypeBytes, messageIdBytes, isOkByte, refMessageIdBytes, messageContentBytes, NullTerminator);
     }
-
-
-
+    
     public override void PrintOutput()
     {
         string status = isOk ? "Success" : "Failure";
         Console.Error.WriteLine($"{status}: {messageContent}");
-    }
-
-    public void PrintRefId()
-    {
-        Console.WriteLine($"REF ID {refMessageId}");
     }
 }

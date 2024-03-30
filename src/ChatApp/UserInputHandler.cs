@@ -119,12 +119,6 @@ namespace ChatApp
                     }
 
                     _receivedMessageType = message.Type;
-
-                    // if (_receivedMessageType == MessageType.Confirm)
-                    // {
-                    //     Console.WriteLine("Confirm received");
-                    //     continue;
-                    // }
                     
                     // ignore unexpected reply message
                     if (_receivedMessageType is MessageType.Reply or MessageType.NotReply)

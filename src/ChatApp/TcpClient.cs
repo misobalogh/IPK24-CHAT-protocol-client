@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using ChatApp.Enums;
 using ChatApp.Messages;
 
 namespace ChatApp;
@@ -84,10 +85,10 @@ public class TcpClient : ClientBase
                 else
                 {
                     Message? parsedMessage = MessageParser.ParseMessage(message);
-                    return parsedMessage;
+                    return parsedMessage ?? new InvalidMessage();
                 }
             }
-            return null;
+            return new InvalidMessage();
         }
         catch (Exception ex)
         {

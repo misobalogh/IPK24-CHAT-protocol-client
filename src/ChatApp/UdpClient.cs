@@ -46,13 +46,11 @@ namespace ChatApp
                 
                 if (_confirmationTimer.Enabled)
                 {
-                    Console.WriteLine($"Confirm timer enabled, currently processed message: {_currentlyProcessedMessage.Type}, id {_currentlyProcessedMessage.MessageId}");
                     _messageQueue.Enqueue(message);
                 }
                 else
                 {
                     _currentlyProcessedMessage = message;
-                    Console.WriteLine($"Confirm timer disabled, message: {_currentlyProcessedMessage.Type}, id {_currentlyProcessedMessage.MessageId}");
                     await SendMessageInternalAsync();
                 }
             }
@@ -84,7 +82,7 @@ namespace ChatApp
                 Message? message = MessageParser.ParseMessage(result.Buffer);
                 if (message == null)
                 {
-                    return null;
+                    return new InvalidMessage();
                 }
 
                 if (message is { Type: MessageType.Confirm })
@@ -141,7 +139,6 @@ namespace ChatApp
         private void OnConfirmReceived(ushort messageId)
         {
             _confirmationTimer.Stop();
-            Console.WriteLine($"Confirm received, message {messageId}");
             _retransmissionCount = 0;
         }
 
@@ -153,7 +150,6 @@ namespace ChatApp
                 {
                     if (_currentlyProcessedMessage.CraftUdp() is { } byteMessage)
                     {
-                        Console.WriteLine("Trying to send again");
                         await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
                         _retransmissionCount++;
                     }
@@ -183,11 +179,5 @@ namespace ChatApp
                 ErrorHandler.InternalError($"Error while sending confirm message: {ex.Message}");
             }
         }
-        //
-        // private class StoredMessage(Message message)
-        // {
-        //     public byte RetransmissionCount { get; set; } = 0;
-        //     public Message Message { get; } = message;
-        // }
     }
 }

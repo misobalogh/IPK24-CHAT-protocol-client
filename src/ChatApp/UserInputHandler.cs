@@ -118,6 +118,7 @@ namespace ChatApp
                         continue;
                     }
 
+                        
                     _receivedMessageType = message.Type;
                     
                     // ignore unexpected reply message
@@ -133,12 +134,12 @@ namespace ChatApp
                     if (_receivedMessageType == MessageType.Bye)
                     {
                         _client.Close();
-                        ErrorHandler.InformUser("Connection terminated from server");
                         ErrorHandler.ExitSuccess();
                     }
 
                     if (_receivedMessageType == MessageType.Err)
                     {
+                        message?.PrintOutput();
                         SendBye();
                     }
 
@@ -150,12 +151,12 @@ namespace ChatApp
                     if (_clientState.GetCurrentState() == State.Error)
                     {
                         await _client.SendMessageAsync(new ErrMessage(_displayName,"Error occured while receiving message from server", _messageId++));
-                        message?.PrintOutput();
                         _clientState.NextState(_receivedMessageType, out _possibleClientMessageType);
-                        
+                    }
+
+                    if (_clientState.GetCurrentState() == State.End)
+                    {
                         await _client.SendMessageAsync(new ByeMessage(_messageId++));
-                        
-                        ErrorHandler.ExitSuccess();
                     }
                     
                     message?.PrintOutput();

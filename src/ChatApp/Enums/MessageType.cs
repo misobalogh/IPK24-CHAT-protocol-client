@@ -11,7 +11,8 @@ public enum MessageType
     Join,
     Msg,
     Bye,
-    MsgOrJoin
+    MsgOrJoin,
+    Invalid
 }
 
 

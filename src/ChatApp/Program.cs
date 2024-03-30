@@ -19,11 +19,6 @@ internal static class Program
             );
         
         userInputHandler.ProcessInput().Wait();
-
-        
-        // var msg = MessageParser.ParseMessage(new ReplyMessage(false ,"abc", 11, 22).CraftUdp());
-        // Console.WriteLine(msg.CraftTcp());
-        // Console.WriteLine(msg?.MessageId);
     }
 }
 

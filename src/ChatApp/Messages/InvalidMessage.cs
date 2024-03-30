@@ -1,0 +1,22 @@
+using ChatApp.Enums;
+
+namespace ChatApp.Messages;
+
+public class InvalidMessage(ushort messageId = 0) : Message(messageId)
+{
+    public override MessageType Type => MessageType.Invalid;
+    public override string? CraftTcp()
+    {
+        return null;
+    }
+    
+    public override byte[]? CraftUdp()
+    {
+        return null;
+    }
+    
+    public override void PrintOutput()
+    {
+        return;
+    }
+}

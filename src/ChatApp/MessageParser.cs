@@ -46,7 +46,7 @@ public static class MessageParser
             }
         }
 
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
     }
 
@@ -65,7 +65,7 @@ public static class MessageParser
             }
         }
 
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
     }
     
@@ -75,7 +75,7 @@ public static class MessageParser
         
         if (messageParts.Length < 7 || messageParts[^1] != 0)
         {
-            ErrorHandler.InformUser("Received invalid ERR message");
+            ErrorHandler.InternalError("Received invalid ERR message");
             return null;
         }
 
@@ -83,7 +83,7 @@ public static class MessageParser
 
         if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
         {
-            ErrorHandler.InformUser("Received invalid ERR message");
+            ErrorHandler.InternalError("Received invalid ERR message");
             return null;
         }
 
@@ -104,7 +104,7 @@ public static class MessageParser
             return new ErrMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
         
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
     }
 
@@ -112,7 +112,7 @@ public static class MessageParser
     {
         if (messageParts.Length < 7 || messageParts[^1] != 0)
         {
-            ErrorHandler.InformUser("Received invalid MSG message");
+            ErrorHandler.InternalError("Received invalid MSG message");
             return null;
         }
 
@@ -120,7 +120,7 @@ public static class MessageParser
 
         if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
         {
-            ErrorHandler.InformUser("Received invalid MSG message");
+            ErrorHandler.InternalError("Received invalid MSG message");
             return null;
         }
 
@@ -141,7 +141,7 @@ public static class MessageParser
             return new MsgMessage(messageParts[2], string.Join(" ", messageParts[4..]));
         }
 
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
     }
     
@@ -149,7 +149,7 @@ public static class MessageParser
     {
         if (messageParts.Length < 8 || messageParts[^1] != 0)
         {
-            ErrorHandler.InformUser("Received invalid REPLY message");
+            ErrorHandler.InternalError("Received invalid REPLY message");
             return null;
         }
 
@@ -176,7 +176,7 @@ public static class MessageParser
             return new ReplyMessage(isOk, string.Join(" ", messageParts[3..]));
         }
 
-        ErrorHandler.InformUser("Invalid REPLY message format");
+        ErrorHandler.InternalError("Invalid REPLY message format");
         return null;
     }
     
@@ -184,14 +184,14 @@ public static class MessageParser
     {
         if (messageParts.Length < 9 || messageParts[^1] != 0)
         {
-            ErrorHandler.InformUser("Received invalid AUTH message");
+            ErrorHandler.InternalError("Received invalid AUTH message");
             return null;
         }
 
         int usernameEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
         if (usernameEndIndex == -1 || usernameEndIndex == messageParts.Length - 1 || messageParts[usernameEndIndex] != 0)
         {
-            ErrorHandler.InformUser("Received invalid AUTH message");
+            ErrorHandler.InternalError("Received invalid AUTH message");
             return null;
         }
 
@@ -199,7 +199,7 @@ public static class MessageParser
         int displayNameEndIndex = Array.IndexOf(messageParts, (byte)0, displayNameStartIndex);
         if (displayNameEndIndex == -1 || displayNameEndIndex == messageParts.Length - 1 || messageParts[displayNameEndIndex] != 0)
         {
-            ErrorHandler.InformUser("Received invalid AUTH message");
+            ErrorHandler.InternalError("Received invalid AUTH message");
             return null;
         }
 
@@ -224,7 +224,7 @@ public static class MessageParser
             return new AuthMessage(messageParts[1], messageParts[3], messageParts[5]);
         }
         
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
 
     }
@@ -233,14 +233,14 @@ public static class MessageParser
     {
         if (messageParts.Length < 7 || messageParts[^1] != 0)
         {
-            ErrorHandler.InformUser("Received invalid JOIN message");
+            ErrorHandler.InternalError("Received invalid JOIN message");
             return null;
         }
 
         int channelIdEndIndex = Array.IndexOf(messageParts, (byte)0, 3);
         if (channelIdEndIndex == -1 || channelIdEndIndex == messageParts.Length - 1 || messageParts[channelIdEndIndex] != 0)
         {
-            ErrorHandler.InformUser("Received invalid JOIN message");
+            ErrorHandler.InternalError("Received invalid JOIN message");
             return null;
         }
 
@@ -262,7 +262,7 @@ public static class MessageParser
             return new JoinMessage(messageParts[1], messageParts[3]);
         }
         
-        ErrorHandler.InformUser("Received unknown message");
+        ErrorHandler.InternalError("Received unknown message");
         return null;
 
     }
@@ -271,7 +271,7 @@ public static class MessageParser
     {
         if (messageParts.Length != 3)
         {
-            ErrorHandler.InformUser("Received invalid BYE message");
+            ErrorHandler.InternalError("Received invalid BYE message");
             return null;
         }
 
@@ -284,7 +284,7 @@ public static class MessageParser
     {
         if (messageParts.Length != 1)
         {
-            ErrorHandler.InformUser("Receive invalid BYE message");
+            ErrorHandler.InternalError("Receive invalid BYE message");
             return null;
         }
 
@@ -295,7 +295,7 @@ public static class MessageParser
     {
         if (messageParts.Length != 3)
         {
-            ErrorHandler.InformUser("Received invalid CONFIRM message");
+            ErrorHandler.InternalError("Received invalid CONFIRM message");
             return null;
         }
 

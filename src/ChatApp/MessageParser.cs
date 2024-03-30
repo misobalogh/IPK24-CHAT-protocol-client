@@ -161,7 +161,7 @@ public static class MessageParser
 
         string messageContents = GetStringFromBytes(messageParts, messageContentsStartIndex, out _);
 
-        return new ReplyMessage(result, messageContents, refMessageId, messageId);
+        return new ReplyMessage(result, messageContents, messageId: messageId, refMessageId: refMessageId);
     }
 
 
@@ -243,12 +243,10 @@ public static class MessageParser
             ErrorHandler.InformUser("Received invalid JOIN message");
             return null;
         }
-        
-        int displayNameStartIndex = channelIdEndIndex + 1;
 
         ushort messageId = GetMessageIdFromBytes(messageParts[1..3]);
         string channelId = GetStringFromBytes(messageParts, 3, out channelIdEndIndex);
-        string displayName = GetStringFromBytes(messageParts, displayNameStartIndex, out _);
+        string displayName = GetStringFromBytes(messageParts, channelIdEndIndex + 1, out _);
 
         return new JoinMessage(channelId, displayName, messageId);
     }
@@ -320,7 +318,7 @@ public static class MessageParser
         }
         return BitConverter.ToUInt16(messageIdBytes, 0);
     }
-
+   
     private static string GetStringFromBytes(byte[] bytes, int startIndex, out int endIndex)
     {
         endIndex = Array.IndexOf(bytes, (byte)0, startIndex);

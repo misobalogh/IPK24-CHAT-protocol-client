@@ -1,3 +1,10 @@
+/*
+ * File: ReplyMessage.cs
+ * Description: Message class for REPLY message
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System.Text;
 using ChatApp.Enums;
 

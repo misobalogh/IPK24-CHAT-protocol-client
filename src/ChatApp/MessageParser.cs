@@ -1,3 +1,10 @@
+/*
+ * File: MessageParser.cs
+ * Description: Parser for received messages.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System.Text;
 using ChatApp.Messages;
 using ChatApp.Enums;

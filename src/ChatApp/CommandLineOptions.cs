@@ -1,6 +1,12 @@
+/*
+ * File: CommandLineOptions.cs
+ * Description: Parses command line options and returns settings for the client.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System;
 using ChatApp.Enums;
-
 
 namespace ChatApp;
 

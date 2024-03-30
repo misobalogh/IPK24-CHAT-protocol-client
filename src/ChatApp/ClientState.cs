@@ -1,3 +1,10 @@
+/*
+ * File: ClientState.cs
+ * Description: Implementation of the FSM for the client.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using ChatApp.Enums;
 
 namespace ChatApp;

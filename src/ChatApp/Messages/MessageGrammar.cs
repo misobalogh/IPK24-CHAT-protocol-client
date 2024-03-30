@@ -1,5 +1,11 @@
-using System.Text.RegularExpressions;
+/*
+ * File: MessageGrammar.cs
+ * Description: Regex for checking message grammar
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
 
+using System.Text.RegularExpressions;
 
 namespace ChatApp.Messages;
 

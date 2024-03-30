@@ -1,3 +1,10 @@
+/*
+ * File: JoinMessage.cs
+ * Description: Message class for JOIN message
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System.Text;
 using ChatApp.Enums;
 

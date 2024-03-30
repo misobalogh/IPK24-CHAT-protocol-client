@@ -1,3 +1,10 @@
+/*
+ * File: UserInputHandler.cs 
+ * Description: Class for handling user input, receiving responses and processing commands.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Net.Sockets;

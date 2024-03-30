@@ -1,3 +1,10 @@
+/*
+ * File: ConfirmMessage.cs
+ * Description: Message class for CONFIRM message
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using ChatApp.Enums;
 
 namespace ChatApp.Messages;

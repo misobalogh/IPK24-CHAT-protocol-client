@@ -1,4 +1,12 @@
-﻿using System.Text;
+﻿/*
+ * File: Program.cs
+ * Description: Main entry point of the application.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
+
+using System.Text;
 using ChatApp.Enums;
 using ChatApp.Messages;
 

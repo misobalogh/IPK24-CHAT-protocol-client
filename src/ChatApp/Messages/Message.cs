@@ -1,3 +1,10 @@
+/*
+ * File: Message.cs
+ * Description: Base class for message individual classes
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System.Text;
 using ChatApp.Enums;
 

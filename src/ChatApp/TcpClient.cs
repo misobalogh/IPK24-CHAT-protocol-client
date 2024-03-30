@@ -1,3 +1,11 @@
+/*
+ * File: TcpClient.cs
+ * Description: Implementation of the TCP variant of the client.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
+
 using System;
 using System.IO;
 using System.Net;

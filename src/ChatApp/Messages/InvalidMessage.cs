@@ -1,3 +1,10 @@
+/*
+ * File: InvalidMessage.cs
+ * Description: Message dummy class for invalid message
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using ChatApp.Enums;
 
 namespace ChatApp.Messages;

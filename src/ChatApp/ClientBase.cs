@@ -1,3 +1,10 @@
+/*
+ * File: ClientBase.cs
+ * Description: Base class for individual variants client implementations.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;

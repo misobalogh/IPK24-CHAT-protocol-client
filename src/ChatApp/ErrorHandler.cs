@@ -1,4 +1,12 @@
+/*
+ * File: ErrorHandler.cs
+ * Description: Class for handling errors and exiting the application.
+ * Author: Michal Balogh, xbalog06
+ * Date: 30.03.2024
+ */
+
 using System;
+using ChatApp.Enums;
 
 namespace ChatApp;
 

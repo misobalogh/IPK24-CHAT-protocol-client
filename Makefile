@@ -12,7 +12,6 @@ build:
 	dotnet publish -c Release /p:DebugType=None -o .
 
 
-
 run: build
 	./$(APP_NAME) -t tcp -s 127.0.0.1 -p 4567
 

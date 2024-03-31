@@ -12,8 +12,7 @@ public enum ExitCode
     Success = 0,
     ConnectionError = 1,
     UnknownParam = 11,
+    MissingArg = 12,
     UnknownCommand = 21,
-    CommandWrongParams = 22,
     UnknownMessageType = 31,
-    
 }

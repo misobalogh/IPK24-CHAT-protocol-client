@@ -75,10 +75,11 @@ public class CommandLineArguments
             }
 
         }
-
+    
+        // Exit with error if mandatory arguments are not set
         if ((TransportProtocol != ProtocolVariant.Tcp && TransportProtocol != ProtocolVariant.Udp) || ServerAddress == "")
         {
-            ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.UnknownParam);
+            ErrorHandler.ExitWith($"Mandatory arguments missing. Try /help", ExitCode.MissingArg);
         }
     }
 

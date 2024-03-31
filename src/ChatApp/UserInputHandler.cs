@@ -196,7 +196,7 @@ namespace ChatApp
             }
             catch (Exception ex)
             {
-                ErrorHandler.InternalError($"Error while receiving messages: {ex.Message}");
+                ErrorHandler.ExitWith($"Error while receiving messages: {ex.Message}", ExitCode.ConnectionError);
             }
         }
 

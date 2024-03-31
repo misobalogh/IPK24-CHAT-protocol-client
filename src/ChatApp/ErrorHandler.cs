@@ -10,6 +10,9 @@ using ChatApp.Enums;
 
 namespace ChatApp;
 
+/// <summary>
+/// Class for handling printing internal errors or 
+/// </summary>
 public static class ErrorHandler
 {
     public static void ExitWith(string message, ExitCode exitCode)
@@ -23,6 +26,10 @@ public static class ErrorHandler
         Environment.Exit((int)ExitCode.Success);
     }
 
+    /// <summary>
+    /// Prints useful information to user, does not terminate the app
+    /// </summary>
+    /// <param name="messageContent"></param>
     public static void InternalError(string messageContent)
     {
         Console.Error.WriteLine($"ERR: {messageContent}");

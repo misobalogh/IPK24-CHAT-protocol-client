@@ -40,7 +40,6 @@ public class UdpClient : ClientBase
         _confirmationTimer = new Timer(udpTimeout);
         _confirmationTimer.AutoReset = false;
         _confirmationTimer.Elapsed += OnConfirmTimeout;
-            
     }
 
     public override async Task SendMessageAsync(Message? message)
@@ -126,7 +125,6 @@ public class UdpClient : ClientBase
         }
         catch (Exception ex)
         {
-            ErrorHandler.InternalError($"Error receiving message: {ex.Message}");
             Close();
             throw;
         }
@@ -156,6 +154,7 @@ public class UdpClient : ClientBase
         {
             try
             {
+                StartConfirmTimer();
                 if (_currentlyProcessedMessage.CraftUdp() is { } byteMessage)
                 {
                     await _udpClient.SendAsync(byteMessage, byteMessage.Length, _serverAddress, _serverPort);
@@ -184,7 +183,8 @@ public class UdpClient : ClientBase
         }
         catch (Exception ex)
         {
-            ErrorHandler.InternalError($"Error while sending confirm message: {ex.Message}");
+            Close();
+            ErrorHandler.ExitWith($"Error while sending confirm message: {ex.Message}", ExitCode.ConnectionError);
         }
     }
 }

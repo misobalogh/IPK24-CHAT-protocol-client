@@ -57,6 +57,8 @@ All notable changes to this project will be documented in this file.
 - Udp client comments
 - Tcp client comments
 - Class diagram
+- CHANGELOG
+- LICENSE
 
 ### 🧪 Testing
 

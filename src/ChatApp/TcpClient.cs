@@ -113,7 +113,7 @@ public class TcpClient : ClientBase
             }
             return new InvalidMessage();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Close();
             throw;

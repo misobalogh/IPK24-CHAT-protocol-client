@@ -123,7 +123,7 @@ public class UdpClient : ClientBase
 
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Close();
             throw;

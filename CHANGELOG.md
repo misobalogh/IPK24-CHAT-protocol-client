@@ -2,33 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+### What is working
+- [x] Tcp Client
+- [x] Udp Client
+### What still need to be done
+- [ ] More testing of Udp version
+- [ ] CLI argument parsing
+- [ ] Redundant error handling
+
+## 🕐History of changes
 
 ### 🚀 Features
-
 - Command line parser
-- Command Line Parser
 - User input handler and error handler
 - Error handling for wrong parameters in commands
 - Basics for the TcpClient class, connection tested with netcat
 - Client FSM, enums for states and message types
 - Message crafters, commands basic implementation
-- Parser for incomming messages
-- Message reciever
-- Regex for checking valid message paramters
-- Async sending and recieving msgs
+- Added method to message class to format message for output
+- Parser for incoming messages
+- Message receiver
+- Regex for checking valid message parameters
+- Async sending and receiving msgs
 - Fixed handling client input messages in certain states
 - Unexpected reply messages are not shown to user
 - Udp message crafters
-- Udp recieved messages parser logic, bye message parser
-- Udp recieved messages parser remaining messages
+- Udp received messages parser logic, bye message parser
+- Udp received messages parser remaining messages
 - Refactoring, base class for clients
 - Refactoring, common interface for creating messages for both variants
-- Udp bases for sending and recieving messages
+- Udp bases for sending and receiving messages
 - Udp received message from server
 - Udp can auth on server ref server
 - Set for unique IDs
-- UDP - succesful auth
+- UDP - successful auth
 - Refactoring, udp retransmission count
 - Udp - dynamic port implementation
 - Queue for udp messages waiting for confirm + refactoring
@@ -36,25 +43,28 @@ All notable changes to this project will be documented in this file.
 
 ### 🐛 Bug Fixes
 
-- Minor fixes, feat: added method to message class to format message for output
+- Minor fixes, 
 - Fsm fix from moore to mealy :)
 - Removing twice from queue fixed
 - Wrong order of parameters in creating reply message"
 - Fix invalid received message parsing
-- Fixed udp client did not timeout + comments for tcp
+- Fixed udp client did not timeout
 
 ### 📚 Documentation
 
 - Headers for every file
 - Docstring comments
-- Udp client comments, class diagram
+- Udp client comments
+- Tcp client comments
+- Class diagram
 
 ### 🧪 Testing
 
 - Test scenarios for netcat
-- Unit tests for client state
+- Unit tests for ClientState
+- Unit tests for MessageParser
 
-### Setup
+### ⚙️ Setup
 
 - Base setup, gitignore, makefile
 - Test directory

@@ -10,7 +10,7 @@ using ChatApp.Enums;
 
 namespace ChatApp;
 
-public class CommandLineArguments
+public class CommandLineOptions
 {
     public ProtocolVariant TransportProtocol { get; private set; }
     public string ServerAddress { get; private set; } = "";
@@ -18,7 +18,7 @@ public class CommandLineArguments
     public ushort UdpTimeout { get; private set; } = 250;
     public byte MaxRetransmissions { get; private set; } = 3;
 
-    public CommandLineArguments(string[] args)
+    public CommandLineOptions(string[] args)
     {
         ParseArguments(args);
     }

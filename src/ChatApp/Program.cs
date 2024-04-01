@@ -15,7 +15,7 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        var cmdArgs = new CommandLineArguments(args);
+        var cmdArgs = new CommandLineOptions(args);
         
         UserInputHandler userInputHandler = new UserInputHandler(
             cmdArgs.TransportProtocol,

@@ -124,11 +124,42 @@ pod nazvom `test_communication_scenarios.txt`. Scenar mi ulahcil testovanie, leb
 vymyslat vstupy a so zadanim kontrolovat vystupy. Vstupy pre server su v testovacom scenari hlavne pre variantu TCP, ked som pouzival
 `netcat` a dane vstupy som vkladal do terminalu, kde bol spusteny.
 
-### 6.3 Testovoanie aplikacie na referncnom serveri
+Tu je ako priklad ukazany prvy testovaci scenar (cisla indikuju poradie posielania a prijmania sprav): 
+#### Terminal s `ipk24chat-client`:
+```
+$ ./ipk24chat-client -t tcp -s 127.0.0.1 -p 4567
+/auth user1 123 userNick                                            1.
+Success: ok      <- received reply                                  4.
+Hello                                                               5.
+user2: Hello back <- received mocked message from another user      8.
+*C-d*                                                               9.
+```
+*`netcat` musi byt zapnuty ako prvy*
+#### Terminal s `netcatom`
+```
+$ nc -4 -l -C -v 127.0.0.1 4567
+Listening on localhost 4567
+Connection received on localhost 52806
+AUTH user1 AS userNick USING 123                                    2.
+reply ok is ok              <- send reply                           3.
+MSG FROM userNick IS Hello                                          6.
+msg from user2 is Hello back  <- mock another user input            7.
+BYE                                                                 10.
+```
+
+### 6.3 Testovanie aplikacie na referncnom serveri
 V zaverecnych fazach projektu som pouzil aj discord server na overenie spravneho riesenia. Pri posielani a prijmanych sprav som mal zapnuty 
-`Wireshark`, kde som mohol vidiet vsetky detaily o spravach ktore posielam a prijmam.
+`Wireshark`, kde som mohol vidiet vsetky detaily o spravach ktore posielam a prijmam. Tu som taktiez vyuzil testovaci scenar popisany [vyssie](#62-testovaci-scenar).
+
+![udp_example](/doc/wireshark_example_udp.jpg)
+
+![tcp_example](/doc/wireshark_example_tcp.jpg)
 
 ## 7. Zaver
+Projekt bol dost rozsiahly, takze som si potrenoval rozlozenie velkeho problemu na mensie casti, naucil som sa viac programovat v jazyku
+C#, pracovat s `netcatom`, `Wiresharkom`. Taktiez som sa naucil viac o programovani pocitacovych komunikacii. Na zaver by som chcel este podakovat
+za spristupnenie discord serveru, kde som si mohol vyskusat funkcionalitu svojho programu a zaroven to bolo zaujimave prepojenie skolskeho projektu 
+s niecim realnym.
 
 ## 8. Bibliografia
 [Informacie k TCP](https://datatracker.ietf.org/doc/html/rfc9293#name-key-tcp-concepts)\

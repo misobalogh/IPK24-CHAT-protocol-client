@@ -22,7 +22,7 @@ udp: build
 	./$(APP_NAME) -t udp -s 127.0.0.1 -p 4567
 
 discord: build
-	./$(APP_NAME) -t udp -s anton5.fit.vutbr.cz -p 4567
+	./$(APP_NAME) -t tcp -s anton5.fit.vutbr.cz -p 4567
 
 help: build
 	./$(APP_NAME) -h

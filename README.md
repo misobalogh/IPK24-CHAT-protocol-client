@@ -7,19 +7,19 @@ používa protokol IPK24-CHAT. Naimplementovať bolo treba dve varianty - UDP a 
 špecializácie a problémy, ktoré tým vznikli.
 
 ## 2. Obsah
-1. [Úvod](#1-uvod)
+1. [Úvod](#1-úvod)
 2. [Obsah](#2-obsah)
-3. [Ako spustiť projekt](#3-ako-spustit-projekt)
-4. [Základná teória k projektu](#4-zakladna-teoria-k-projektu)\
+3. [Ako spustiť projekt](#3-ako-spustiť-projekt)
+4. [Základná teória k projektu](#4-základná-teória-k-projektu)\
     4.1 [TCP](#41-tcp-transmission-control-protocol)\
     4.2 [UDP](#42-udp-user-datagram-protocol)\
     4.3 [Socket](#43-socket)
-5. [Štruktúra projektu](#5-struktura-projektu)
+5. [Štruktúra projektu](#5-štruktúra-projektu)
 6. [Testovanie](#6-testovanie) \
-    6.1 [Unit testy](#61-unit-test) \
-    6.2 [Testovací scenár](#62-testovaci-scenar) \
-    6.3 [Testovanie aplikácie na referenčnom serveri](#63-testovanie-aplikacie-na-referncnom-serveri)
-7. [Zaver](#7-zaver)
+    6.1 [Unit testy](#61-unit-testy) \
+    6.2 [Testovací scenár](#62-testovací-scenár) \
+    6.3 [Testovanie aplikácie na referenčnom serveri](#63-testovanie-aplikácie-na-referenčnom-serveri)
+7. [Zaver](#7-záver)
 8. [Bibliografia](#8-bibliografia)
 
 
@@ -160,8 +160,8 @@ V záverečných fázach projektu som použil aj discord server na overenie spr�
 ![udp_example](/doc/wireshark_example_udp.jpg)
 
 ![tcp_example](/doc/wireshark_example_tcp.jpg)
-Záver
 
+## 7. Záver
 Projekt bol dosť rozsiahly, takže som si potrénoval rozloženie veľkého problému na menšie časti, naučil som sa viac programovať v jazyku
 C#, pracovať s `netcatom`, `Wiresharkom`. Tiež som sa naučil viac o programovaní počítačových komunikácií. Na záver by som chcel ešte poďakovať
 za sprístupnenie discord serveru, kde som si mohol vyskúšať funkcionalitu svojho programu a zároveň to bolo zaujímavé prepojenie školského projektu

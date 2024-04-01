@@ -9,15 +9,15 @@ specializacie a problemy, ktore tym vznikli.
 ## 2. Obsah
 1. [Uvod](#1-uvod)
 2. [Obsah](#2-obsah)
-3. [Ako spustit projekt](#2-ako-spustit-projekt)
-4. [Zakladna teoria k projektu](#3-zakladna-teoria-k-projektu)\
-    4.1 [TCP](#31-tcp-transmission-control-protocol)\
-    4.2 [UDP](#32-udp-user-datagram-protocol)\
-    4.3 [Socket](#33-socket)
-5. [Struktura projektu](#4-struktura-projektu)
-6. [Testovanie](#5-testovanie)
-7. [Zaver](#6-zaver)
-8. [Bibliografia](#7-bibliografia)
+3. [Ako spustit projekt](#3-ako-spustit-projekt)
+4. [Zakladna teoria k projektu](#4-zakladna-teoria-k-projektu)\
+    4.1 [TCP](#41-tcp-transmission-control-protocol)\
+    4.2 [UDP](#42-udp-user-datagram-protocol)\
+    4.3 [Socket](#43-socket)
+5. [Struktura projektu](#5-struktura-projektu)
+6. [Testovanie](#6-testovanie)
+7. [Zaver](#7-zaver)
+8. [Bibliografia](#8-bibliografia)
 
 
 ## 3. Ako spustit projekt

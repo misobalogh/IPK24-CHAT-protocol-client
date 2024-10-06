@@ -19,7 +19,7 @@ používa protokol IPK24-CHAT. Naimplementovať bolo treba dve varianty - UDP a 
     6.1 [Unit testy](#61-unit-testy) \
     6.2 [Testovací scenár](#62-testovací-scenár) \
     6.3 [Testovanie aplikácie na referenčnom serveri](#63-testovanie-aplikácie-na-referenčnom-serveri)
-7. [Bibliografia](#8-bibliografia)
+7. [Bibliografia](#7-bibliografia)
 
 
 ## 3. Ako spustiť projekt

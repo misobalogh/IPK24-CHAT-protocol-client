@@ -19,8 +19,7 @@ používa protokol IPK24-CHAT. Naimplementovať bolo treba dve varianty - UDP a 
     6.1 [Unit testy](#61-unit-testy) \
     6.2 [Testovací scenár](#62-testovací-scenár) \
     6.3 [Testovanie aplikácie na referenčnom serveri](#63-testovanie-aplikácie-na-referenčnom-serveri)
-7. [Zaver](#7-záver)
-8. [Bibliografia](#8-bibliografia)
+7. [Bibliografia](#8-bibliografia)
 
 
 ## 3. Ako spustiť projekt
@@ -161,13 +160,7 @@ V záverečných fázach projektu som použil aj discord server na overenie spr�
 
 ![tcp_example](/doc/wireshark_example_tcp.jpg)
 
-## 7. Záver
-Projekt bol dosť rozsiahly, takže som si potrénoval rozloženie veľkého problému na menšie časti, naučil som sa viac programovať v jazyku
-C#, pracovať s `netcatom`, `Wiresharkom`. Tiež som sa naučil viac o programovaní počítačových komunikácií. Na záver by som chcel ešte poďakovať
-za sprístupnenie discord serveru, kde som si mohol vyskúšať funkcionalitu svojho programu a zároveň to bolo zaujímavé prepojenie školského projektu
-s niečím reálnym.
-
-## 8. Bibliografia
+## 7. Bibliografia
 [RFC768] Postel, J. User Datagram Protocol [online]. March 1997. [cited 2024-04-01]. DOI: 10.17487/RFC0768. Available at:\
 https://datatracker.ietf.org/doc/html/rfc768 \
 [RFC9293] Eddy, W. Transmission Control Protocol (TCP) [online]. August 2022. [cited 2024-04-01]. DOI: 10.17487/RFC9293. Available at:\

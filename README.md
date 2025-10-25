@@ -1,134 +1,131 @@
-# Klient pre chatovací server používajúci IPK24-CHAT protokol
-## IPK - Projekt 1
+# Client for chat server using IPK24-CHAT protocol
+## IPK - Project 1
 
-## 1. Úvod
-Cieľom tohto projektu bolo vytvorenie klienta k serveru chatovacej konzolovej aplikácie, ktorá na komunikáciu
-používa protokol IPK24-CHAT. Naimplementovať bolo treba dve varianty - UDP a TCP. Obidve varianty mali svoje
-špecializácie a problémy, ktoré tým vznikli.
+## 1. Introduction
+The goal of this project was to create a client for a console chat application server that uses the IPK24-CHAT protocol for communication. Two variants needed to be implemented - UDP and TCP. Both variants had their specializations and problems that arose from them.
 
-## 2. Obsah
-1. [Úvod](#1-úvod)
-2. [Obsah](#2-obsah)
-3. [Ako spustiť projekt](#3-ako-spustiť-projekt)
-4. [Základná teória k projektu](#4-základná-teória-k-projektu)\
+## 2. Table of Contents
+1. [Introduction](#1-introduction)
+2. [Table of Contents](#2-table-of-contents)
+3. [How to Run the Project](#3-how-to-run-the-project)
+4. [Basic Theory for the Project](#4-basic-theory-for-the-project)\
     4.1 [TCP](#41-tcp-transmission-control-protocol)\
     4.2 [UDP](#42-udp-user-datagram-protocol)\
     4.3 [Socket](#43-socket)
-5. [Štruktúra projektu](#5-štruktúra-projektu)
-6. [Testovanie](#6-testovanie) \
-    6.1 [Unit testy](#61-unit-testy) \
-    6.2 [Testovací scenár](#62-testovací-scenár) \
-    6.3 [Testovanie aplikácie na referenčnom serveri](#63-testovanie-aplikácie-na-referenčnom-serveri)
-7. [Bibliografia](#7-bibliografia)
+5. [Project Structure](#5-project-structure)
+6. [Testing](#6-testing) \
+    6.1 [Unit Tests](#61-unit-tests) \
+    6.2 [Test Scenario](#62-test-scenario) \
+    6.3 [Testing the Application on Reference Server](#63-testing-the-application-on-reference-server)
+7. [Bibliography](#7-bibliography)
 
 
-## 3. Ako spustiť projekt
-Projekt je možné zostaviť pomocou príkazu make v koreňovom adresári. Po zostavení binárneho súboru ipk24chat-client je ho možné spustiť s parametrami definovanými v zadani projektu. 
-Pre viac informácií použite parameter `-h`.
-Ďalšie ciele programu make:
-- `make` - zostaví projekt
-- `make help` - vypíše užitočné informácie o spustení projektu
-- `make test` - spustí unit testy k projektu
-- `make udp` - spustí klienta s predvolenými parametrami a protokolom UDP
-- `make test` - spustí klienta s predvolenými parametrami a protokolom TCP
+## 3. How to Run the Project
+The project can be built using the make command in the root directory. After building the ipk24chat-client binary, it can be run with parameters defined in the project assignment.
+For more information, use the `-h` parameter.
+Additional make targets:
+- `make` - builds the project
+- `make help` - prints useful information about running the project
+- `make test` - runs unit tests for the project
+- `make udp` - runs the client with default parameters and UDP protocol
+- `make tcp` - runs the client with default parameters and TCP protocol
 
-## 4. Základná teória k projektu
+## 4. Basic Theory for the Project
 
 ### 4.1 TCP (Transmission Control Protocol)
-TCP poskytuje spoľahlivú službu doručovania dát v poradí akom boli odoslané v podobe prúdu bytov aplikáciám.
-Správy sú prenášané cez sieť pomocou TCP segmentov, kde každý segment je odoslaný ako Internet Protocol datagram.
-Spoľahlivé doručenie správ si berie väčšiu réžiu na čase prenosu a veľkosti prenosu dát. Používa sa
-na prenášanie súborov, zasielanie emailov alebo ho tiež využíva SSH (Secure Shell).
+TCP provides a reliable data delivery service in the order they were sent in the form of a byte stream to applications.
+Messages are transmitted over the network using TCP segments, where each segment is sent as an Internet Protocol datagram.
+Reliable message delivery takes more overhead in terms of transmission time and data transfer size. It is used
+for file transfers, sending emails, or is also used by SSH (Secure Shell).
 
 ### 4.2 UDP (User Datagram Protocol)
-UDP je jednoduchý protokol pre aplikačné programy na odosielanie správ iným programom
-s malými nárokmi na protokolové mechanizmy. Na rozdiel od TCP však nie je spoľahlivý a nie je zaručené
-doručenie správ alebo ochrana pred duplikovanými správami. Používa sa v prípadoch, kedy je dôležitá latencia,
-a nie spoľahlivosť doručenia všetkých dát - napríklad videohovory.
+UDP is a simple protocol for application programs to send messages to other programs
+with minimal protocol mechanism requirements. Unlike TCP, however, it is not reliable and there is no guarantee
+of message delivery or protection against duplicate messages. It is used in cases where latency is important,
+not the reliability of delivering all data - for example, video calls.
 
 ### 4.3 Socket
-Sockety sa používajú na interakciu medzi klientom a serverom. V modeli klient-server čaká socket na serveri
-na požiadavky od klienta. Server najprv vytvorí adresu, pomocou ktorej je možné server nájsť zo strany klienta.
-Keď je adresa vytvorená, server čaká na požiadavku od klienta. Klient sa na server pripojí tiež pomocou socketu,
-prebehne výmena dát, server obslúži požiadavku klienta a odošle odpoveď klientovi.
+Sockets are used for interaction between client and server. In the client-server model, the socket on the server
+waits for requests from the client. The server first creates an address through which the server can be found from the client side.
+When the address is created, the server waits for a request from the client. The client also connects to the server using a socket,
+data exchange occurs, the server handles the client's request and sends a response to the client.
 
-## 5. Štruktúra projektu
-Projekt som sa snažil rozdeliť na podproblémy, ktoré som rozdelil do logických celkov alebo tried,
-ktoré riešia daný podproblém. Rozdelenie programu a vzájomná spolupráca tried je zobrazená v diagrame tried:
+## 5. Project Structure
+I tried to divide the project into subproblems, which I divided into logical units or classes,
+that solve the given subproblem. The program division and mutual cooperation of classes is shown in the class diagram:
 
 ![Chat App Class Diagram](/doc/ChatAppClassDiagram.png)
-*(Diagram je dostupný v priečinku `doc/`)*
+*(Diagram is available in the `doc/` directory)*
 
-Vstupný bod programu je v súbore Program spustením metódy `Main()`. Najprv sa vytvorí inštancia triedy CommandLineOptions,
-ktorá vo svojom konštruktore invokuje svoju metódu `ParseArguments()`. Tá priradí hodnoty jednotlivých argumentov do svojich
-atribútov, alebo ukončí program s chybou. Získané nastavenia z argumentov sa potom predajú inštancii triedy `UserInputHandler`,
-ktorá spracúva užívateľské vstupy a príkazy.
+The entry point of the program is in the Program file by running the `Main()` method. First, an instance of the CommandLineOptions class is created,
+which invokes its `ParseArguments()` method in its constructor. It assigns the values of individual arguments to its
+attributes, or terminates the program with an error. The obtained settings from the arguments are then passed to an instance of the `UserInputHandler` class,
+which processes user inputs and commands.
 
 ### `UserInputHandler`
-Táto trieda si podľa zvoleného nastavenia varianty protokolu vytvorí inštanciu triedy `UdpClient` alebo `TcpClient`.
-Obidve tieto triedy dedia z abstraktnej triedy `ClientBase`, ktorá deklaruje tri metódy:
-- `SendMessageAsync()` - ktorá slúži na asynchrónne posielanie správ
-- `ReceiveMessageAsync()` - na asynchrónne prijímanie správ
-- `Close()` - uvoľní zdroje a ukončí komunikáciu.
+This class creates an instance of the `UdpClient` or `TcpClient` class according to the selected protocol variant setting.
+Both these classes inherit from the abstract `ClientBase` class, which declares three methods:
+- `SendMessageAsync()` - which is used for asynchronous message sending
+- `ReceiveMessageAsync()` - for asynchronous message receiving
+- `Close()` - releases resources and terminates communication.
 
-Pri spracovaní užívateľského vstupu, trieda najprv zavolá asynchrónnu metódu `ReceiveMessageAsync()` a potom vo `while` cykle
-číta štandardný vstup a spracúva ho. Ak sa vstup začína znakom `/`, pokúsi sa o spustenie príkazu, ak taký existuje. Ak nie,
-vypíše užívateľovi varovanie. V inom prípade berie vstup ako obyčajnú správu. Ak je príslušný príkaz alebo poslanie správy neprijateľné
-v aktuálnom stave klienta, oznámi to užívateľovi. V prípade, že niektoré správy potrebujú odpoveď alebo potvrdenie nejakej správy,
-vstupy od užívateľa si ukladá do fronty a akonáhle príde čakána odpoveď, odošle všetky správy, ktoré čakali vo fronte, kým nenarazí
-na správu, ktorá zase potrebuje potvrdenie od serveru. Trieda si tiež drží užívateľské meno, ktoré sa prípadne dá zmeniť príkazom `/rename`.
+When processing user input, the class first calls the asynchronous `ReceiveMessageAsync()` method and then in a `while` loop
+reads standard input and processes it. If the input starts with a `/` character, it attempts to execute a command if one exists. If not,
+it displays a warning to the user. Otherwise, it treats the input as a regular message. If the respective command or sending a message is unacceptable
+in the current client state, it notifies the user. In case some messages need a response or confirmation of some message,
+it stores user inputs in a queue and as soon as the awaited response arrives, it sends all messages that were waiting in the queue until it encounters
+a message that again needs confirmation from the server. The class also maintains a username, which can optionally be changed with the `/rename` command.
 
 ### `TcpClient`
-Trieda slúži na spracovanie správ cez TCP protokol. Vytvorí si `reader`, `writer`, `network stream`, pripojí sa na *endpoint* a len
-z tohto `streamu` číta alebo do neho zapisuje správy.
+The class is used to process messages via TCP protocol. It creates a `reader`, `writer`, `network stream`, connects to an *endpoint* and only
+reads from or writes messages to this `stream`.
 
 ### `UdpClient`
-Komunikácia musí fungovať na dynamických portoch, takže trieda si po prvej správe od serveru okrem potvrdenia `confirm` zapamätá port, odkiaľ prišla správa,
-a na ten port už bude smerovať všetky svoje správy. Táto trieda pri každej prijatej (okrem správy `confirm`) správe pošle hneď správu confirm naspäť serveru.
-Má tiež časovač, ktorý sa spustí pri odoslaní správy, a keď tento časovač vyprší, pokúsi sa danú správu poslať znovu. Maximálne spraví toľko pokusov, koľko je
-definovaných cez parameter `MaxRetransmissions`.
+Communication must work on dynamic ports, so the class, after the first message from the server, besides the `confirm` confirmation, remembers the port from where the message came,
+and will direct all its messages to that port. This class, upon each received message (except `confirm` message), immediately sends a confirm message back to the server.
+It also has a timer that starts when sending a message, and when this timer expires, it attempts to send the message again. It makes a maximum number of attempts as defined
+through the `MaxRetransmissions` parameter.
 
 ### `ClientState`
-Táto trieda stavruje konečný automat zo zadania. Pomocou prijatých správ od servera sa prepína do rôznych stavov.
-Klient potom umožňuje niektoré akcie len v určitých stavoch.
+This class implements the finite state machine from the assignment. It switches to different states using received messages from the server.
+The client then allows certain actions only in certain states.
 
 ### `Message`
-Abstraktná trieda `Message` má potomkov, ktoré reprezentujú konkrétne typy správ. Má deklarované tri metódy, ktoré musia potom konkrétne podtriedy implementovať:
-- `CraftTcp()` - slúži na vytvorenie daného typu správy v správnom formáte pre TCP variantu
-- `CraftUdp()` - slúži na vytvorenie daného typu správy v správnom (byte) formáte pre UDP variantu
-- `PrintOutput()` - niektoré správy pri prijatí u klienta sa majú zobraziť na výstupe u klienta a na to slúži táto metóda, ktorá to vypíše v správnom formáte
-- 
+The abstract `Message` class has descendants that represent specific message types. It has three declared methods that concrete subclasses must then implement:
+- `CraftTcp()` - used to create the given message type in the correct format for the TCP variant
+- `CraftUdp()` - used to create the given message type in the correct (byte) format for the UDP variant
+- `PrintOutput()` - some messages when received at the client should be displayed on the client's output, and this method does that in the correct format
+
 ### `MessageGrammar`
-Slúži na kontrolovanie správneho formátu správ pomocou *regexov*.
+Used to check the correct format of messages using *regexes*.
 
 ### `MessageParser`
-Trieda zpracuje správu a vyhodnotí, o akú správu ide, aké má parametre a či je v správnom formáte.
+The class processes a message and evaluates what kind of message it is, what parameters it has, and whether it is in the correct format.
 
 ### `ErrorHandler`
-Pomocná trieda na oznámenie chýb užívateľovi a prípadné ukončenie aplikácie.
+Helper class for notifying errors to the user and potentially terminating the application.
 
 
-## 6. Testovanie
-Testovanie projektu som robil z väčšej časti ručne, použitím rôznych programov a kontrolovaním výstupu.
-Pri testovaní som použil aplikáciu `Wireshark` s pluginom pre IPK24-CHAT protokol, na kontrolovanie prijímaných a odosielnaych správ.
-Na testovanie varianty TCP som použil `netcat`, kde som simuloval komunikáciu so serverom.
+## 6. Testing
+I mostly tested the project manually, using various programs and checking the output.
+During testing, I used the `Wireshark` application with a plugin for the IPK24-CHAT protocol to check received and sent messages.
+For testing the TCP variant, I used `netcat`, where I simulated communication with the server.
 
 
-### 6.1 Unit testy
-Triedy, kde mi to dávalo zmysel, som testoval aj pomocou jednotkových testov. Konkrétne u tried `MessageParser`
-a `ClientState`. Pri testovaní `ClientState` som vyskúšal všetky možné vstupy v daných stavoch. Pri testovaní triedy
-`MessageParser` som skúsil pár vstupov, ktoré by mali prejsť a pár správ, ktoré mali buď zlý počet parametrov, alebo dané časti správy
-nezodpovedali gramatike správ používaných v protokole `IPK24-CHAT`. Testy sa dajú spustiť príkazom `make test`.
+### 6.1 Unit Tests
+I tested classes where it made sense using unit tests. Specifically for the `MessageParser`
+and `ClientState` classes. When testing `ClientState`, I tried all possible inputs in given states. When testing the
+`MessageParser` class, I tried several inputs that should pass and several messages that had either the wrong number of parameters, or the given parts of the message
+did not correspond to the grammar of messages used in the `IPK24-CHAT` protocol. Tests can be run with the `make test` command.
 
-### 6.2 Testovací scenár
-Keďže testovanie prebiehalo väčšinu času ručne, pripravil som si testovací scenár, kde sú vypísané vstupy, ktoré má
-používateľ zadať a výstupy, ktoré sa očakávajú na strane serveru. Testovací scenár je možné prezrieť v zložke `tests`
-pod názvom `test_communication_scenarios.txt`. Scenár mi uľahčil testovanie, lebo som nemusel pri každom testovaní funkčnosti programu
-vymýšľať vstupy a so zadaním kontrolovať výstupy. Vstupy pre server sú v testovacom scenári hlavne pre variantu TCP, keď som používal
-`netcat` a dané vstupy som vkladal do terminálu, kde bol spustený.
+### 6.2 Test Scenario
+Since testing was mostly done manually, I prepared a test scenario where the inputs that the
+user should enter and the outputs that are expected on the server side are listed. The test scenario can be viewed in the `tests` folder
+under the name `test_communication_scenarios.txt`. The scenario made testing easier because I didn't have to think of inputs and check outputs against the assignment every time I tested the program's functionality. Server inputs in the test scenario are mainly for the TCP variant, when I used
+`netcat` and inserted the given inputs into the terminal where it was running.
 
-Tu je ako príklad ukázaný prvý testovací scenár (čísla indikujú poradie posielania a prijímania správ): 
-#### Terminál s `ipk24chat-client`:
+Here is the first test scenario as an example (numbers indicate the order of sending and receiving messages):
+#### Terminal with `ipk24chat-client`:
 ```
 $ ./ipk24chat-client -t tcp -s 127.0.0.1 -p 4567
 /auth user1 123 userNick                                            1.
@@ -137,9 +134,9 @@ Hello                                                               5.
 user2: Hello back <- received mocked message from another user      8.
 *C-d*                                                               9.
 ```
-*`netcat` musí byť zapnutý ako prvý*
+*`netcat` must be started first*
 
-#### Terminál s `netcatom`
+#### Terminal with `netcat`
 ```
 $ nc -4 -l -C -v 127.0.0.1 4567
 Listening on localhost 4567
@@ -151,16 +148,16 @@ msg from user2 is Hello back  <- mock another user input            7.
 BYE                                                                 10.
 ```
 
-### 6.3 Testovanie aplikácie na referenčnom serveri
+### 6.3 Testing the Application on Reference Server
 
-V záverečných fázach projektu som použil aj discord server na overenie správneho riešenia. Pri posielaní a prijímaných správach som mal zapnutý
-`Wireshark`, kde som mohol vidieť všetky detaily o správach, ktoré posielam a prijímam. Tu som tiež využil testovací scenár popísaný [vyššie](#62-testovaci-scenar).
+In the final phases of the project, I also used a discord server to verify the correct solution. When sending and receiving messages, I had
+`Wireshark` running, where I could see all the details about the messages I was sending and receiving. Here I also used the test scenario described [above](#62-test-scenario).
 
 ![udp_example](/doc/wireshark_example_udp.jpg)
 
 ![tcp_example](/doc/wireshark_example_tcp.jpg)
 
-## 7. Bibliografia
+## 7. Bibliography
 [RFC768] Postel, J. User Datagram Protocol [online]. March 1997. [cited 2024-04-01]. DOI: 10.17487/RFC0768. Available at:\
 https://datatracker.ietf.org/doc/html/rfc768 \
 [RFC9293] Eddy, W. Transmission Control Protocol (TCP) [online]. August 2022. [cited 2024-04-01]. DOI: 10.17487/RFC9293. Available at:\
